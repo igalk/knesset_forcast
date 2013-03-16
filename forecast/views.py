@@ -3,9 +3,10 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render_to_response
 from django.template import RequestContext
 from forecast.data_populator import DataPopulator
-from forecast.models import Bill, Member
+from forecast.models import Bill, Member, Party
 from forecast.member_bills_feature_extractor import MemberBillsFeatures
 from forecast.member_bills_feature_extractor import MemberBillsFeatureExtractor
+from forecast.party_bills_feature_extractor import PartyBillsFeatures
 from search.words.bag_of_words import Build
 
 def FetchAllData(request):
@@ -43,3 +44,11 @@ def BillOverviewForMemberPrediction(request, member_id):
           'feature_values': feature_values[bill.id][0],
         } for bill in bills],
     })
+
+def SelectFeaturesForPartyPrediction(request, party_id):
+  party = get_object_or_404(Party, pk=party_id)
+  bag_of_words = Build(party_id)
+  return render_to_response('forecast/predict_party.html', {
+      'party': party,
+      'features': PartyBillsFeatures(bag_of_words),
+    }, context_instance=RequestContext(request))

@@ -1,0 +1,37 @@
+{% extends "base_with_tables.html" %}
+
+{% block content %}
+{% if parties_list %}
+  <h1>בחר מפלגה לקבלת תחזית</h1>
+  <div>
+    <table id="partyTable" class="tablesorter">
+    <thead>
+    <tr>
+      <th>ID</th>
+      <th>שם</th>
+      <th>מושבים</th>
+      <th>בקואליציה?</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for party in parties_list %}
+      <tr>
+        <th>{{ party.id }}</th>
+        <th><a href="/forecast/predict/party/{{ party.id }}/">{{ party.name }}</a></th>
+        <th>{{ party.number_of_seats }}</th>
+        <th>{% if party.is_in_coalition %}כן{% else %}לא{% endif %}</th>
+      </tr>
+    {% endfor %}
+    </tbody>
+    </table>
+  </div>
+  <script type="text/javascript">
+    $(document).ready(function() {
+      $("#partyTable").tablesorter();
+    });
+  </script>
+{% else %}
+  <p>רשימת המפלגות ריקה.</p>
+  <a href="/forecast/fetch/">ייבא רשימת מפלגות מחדש</a>
+{% endif %}
+{% endblock %}

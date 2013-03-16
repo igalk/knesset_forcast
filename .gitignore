@@ -1,5 +1,6 @@
 *.py[cod]
 db.sqlite
+*/.DS_Store
 
 # C extensions
 *.so

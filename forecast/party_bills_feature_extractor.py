@@ -77,27 +77,23 @@ class BillHasKeyWords(Feature):
   def LegalValues(self):
     return ['FOR', 'AGAINST', 'ABSTAIN', 'NONE']
 
-def MemberBillsFeatures(bag_of_words):
+def PartyBillsFeatures(bag_of_words):
   if not bag_of_words:
     raise Exception("Bag of words can't be None")
-  return [PartyProposedBillFeature(),
-          PartyJoinedBillFeature(),
+  return [PartyMemberProposedBillFeature(),
+          PartyMemberJoinedBillFeature(),
           PartyInCoalitionFeature(),
-          BillProposingPartyInCoalitionFeature(),
-          BillJoiningPartyInCoalitionFeature(),
-          BillProposingPartyInOpositionFeature(),
-          BillJoiningPartyInOpositionFeature(),
+          PartySupportsBillAgendaFeature(),
           BillHasKeyWords(bag_of_words)]
 
-class MemberBillsFeatureExtractor:
-  def Extract(self, member, bills, features):
+class PartyBillsFeatureExtractor:
+  def Extract(self, party, bills, features):
     feature_values = {}
     for bill in bills:
       values = []
       for feature in features:
-        values.append(feature.Extract(member, bill))
-      classification = MemberBillFeaturesUtils.ExtractClassification(member, bill)
+        values.append(feature.Extract(party, bill))
+      classification = PartyBillFeaturesUtils.ExtractClassification(party, bill)
       feature_values[bill.id] = tuple((tuple(values), classification))
 
     return feature_values
-
