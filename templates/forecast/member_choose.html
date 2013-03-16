@@ -1,0 +1,39 @@
+{% extends "base_with_tables.html" %}
+
+{% block content %}
+{% if members_list %}
+  <h1>בחר ח"כ לקבלת תחזית</h1>
+  <div>
+    <table id="memberTable" class="tablesorter">
+    <thead>
+    <tr>
+      <th>ID</th>
+      <th>שם</th>
+      <th>מפלגה</th>
+      <th>נוכחי</th>
+      <th>תפקיד</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for member in members_list %}
+      <tr>
+        <th>{{ member.id }}</th>
+        <th><a href="/forecast/predict/member/{{ member.id }}/">{{ member.name }}</a></th>
+        <th>{{ member.party.name }}</th>
+        <th>{% if member.is_current %}נוכחי{% else %}לשעבר{% endif %}</th>
+        <th>{{ member.role }}</th>
+      </tr>
+    {% endfor %}
+    </tbody>
+    </table>
+  </div>
+  <script type="text/javascript">
+    $(document).ready(function() {
+      $("#memberTable").tablesorter();
+    });
+  </script>
+{% else %}
+  <p>רשימת הח"כים ריקה.</p>
+  <a href="/forecast/fetch/">ייבא רשימת ח"כים מחדש</a>
+{% endif %}
+{% endblock %}

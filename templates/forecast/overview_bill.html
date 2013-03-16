@@ -1,0 +1,34 @@
+{% extends "base_with_tables.html" %}
+
+{% block content %}
+<h1>ערוך הצעת חוק כדי לקבל תחזית</h1>
+<div>
+  <table id="featureTable" class="tablesorter">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>תיאור</th>
+        {% for feature in features %}
+          <th>{{ feature.name }}</th>
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for o in feature_values %}
+        <tr>
+          <th>{{ o.bill.id }}</th>
+          <th><a href="http://oknesset.org/bill/{{ o.bill.id }}/">{{ o.bill.title }}</a></th>
+          {% for value in o.feature_values %}
+            <th>{{ value }}</th>
+          {% endfor %}
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+<script type="text/javascript">
+  $(document).ready(function() {
+      $("#featureTable").tablesorter();
+  });
+</script>
+{% endblock %}

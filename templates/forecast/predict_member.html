@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block header %}
+<div style="text-align: left;">
+  <a href="/forecast/predict/member/{{ member.id }}/history/">צפה בתחזיות קודמות עבור ח"כ זה</a>
+</div>
+{% endblock %}
+
+{% block content %}
+<h1>תחזית עבור {{ member.name }}</h1>
+<h2>בחר מאפיינים ליצירת התחזיות</h2>
+<form action="/forecast/predict/member/{{ member.id }}/bill/" method="POST">
+  {% csrf_token %}
+  {% for feature in features %}
+    <input type="checkbox"
+           name="feature{{ forloop.counter }}"
+           id="feature{{ forloop.counter }}"
+           checked>
+      {{ feature.name }}
+      </input><br/>
+  {% endfor %}
+  <input type="submit" value="המשך>"/>
+</form>
+{% endblock %}

@@ -1,0 +1,18 @@
+<html lang="he" dir="rtl">
+  <head>
+    <link href="/static/css/demo.css" rel="stylesheet" type="text/css" />
+    <link href="/static/css/style.css" rel="stylesheet" type="text/css" />
+    <link href="http://fonts.googleapis.com/css?family=Alegreya+SC:700,400italic"
+          rel="stylesheet" type="text/css" />
+    <script src="/static/js/modernizr.js" type="text/javascript"></script>
+    {% block head %}{% endblock %}
+  </head>
+  <body>
+    <div id="header">
+      {% block header %}{% endblock %}
+    </div>
+    <div id="content">
+      {% block content %}{% endblock %}
+    </div>
+  </body>
+</html>
