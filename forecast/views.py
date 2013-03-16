@@ -8,7 +8,7 @@ from forecast.member_bills_feature_extractor import MemberBillsFeatures
 from forecast.member_bills_feature_extractor import MemberBillsFeatureExtractor
 from search.words.bag_of_words import Build
 
-def FetchMembers(request):
+def FetchAllData(request):
   DataPopulator().PopulateAllData()
   return HttpResponseRedirect(reverse('members_choose'))
 
