@@ -91,8 +91,6 @@ class PartyBillsFeatureExtractor:
   def Extract(self, party, bills, features):
     feature_values = {}
     for bill in bills:
-      if not bill.vote_set.all():
-        continue
       values = []
       for feature in features:
         values.append(feature.Extract(party, bill))
