@@ -1,5 +1,6 @@
 from django.core.exceptions import ObjectDoesNotExist
 from forecast.feature import *
+from forecast.member_bills_feature_extractor import MemberBillFeaturesUtils
 from search.words.contexted_words import ContextedBagOfWords
 
 class PartyBillFeaturesUtils:
@@ -18,7 +19,7 @@ class PartyMemberProposedBillFeature(BooleanFeature):
 
   def Extract(self, party, bill):
     return len(set(bill.proposing_members.all()).intersection(
-               set(party.member_set()))) > 0
+               set(party.member_set.all()))) > 0
 
 class PartyMemberJoinedBillFeature(BooleanFeature):
   """Feature is True if a party member was one of the joiners of the bill."""
@@ -27,7 +28,7 @@ class PartyMemberJoinedBillFeature(BooleanFeature):
 
   def Extract(self, party, bill):
     return len(set(bill.joining_members.all()).intersection(
-               set(party.member_set()))) > 0
+               set(party.member_set.all()))) > 0
 
 class PartyInCoalitionFeature(BooleanFeature):
   """Feature is True if the party is in the coalition."""

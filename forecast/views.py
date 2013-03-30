@@ -115,3 +115,42 @@ def BillOverviewForPartyPrediction(request, party_id):
           'feature_values': feature_values[bill.id][0],
         } for bill in bills],
     })
+
+def FeatureDownloadForParty(request, party_id):
+  party = get_object_or_404(Party, pk=party_id)
+
+  feature_extractor = PartyBillsFeatureExtractor()
+  class_values = sorted(['FOR', 'AGAINST', 'ABSTAIN', 'NO_SHOW'])
+
+  votes = set()
+  for member in party.member_set.all():
+    votes = votes.union(Vote.objects.filter(votememberdecision__member_id=member.id))
+  bills = Bill.objects.filter(vote__id__in=[vote.id for vote in votes])
+
+  # Build bag of words
+  with Process('Building bag of words for party %s' % party.id):
+    bag_of_words = Build(party=party)
+
+  # Build features
+  with Process('Building features for party %s (%s bills)' % (party.id, len(bills))):
+    features = PartyBillsFeatures(bag_of_words)
+
+    extracted = feature_extractor.Extract(party, bills, features)
+    feature_values = [sorted(feature.LegalValues()) for feature in features]
+
+  # Output features to arff
+  content = ''
+  with Process('Outputing arff for party %s' % party.id):
+    content += '@RELATION decision\n\n'
+    for feature in features:
+      content += '@ATTRIBUTE %s {%s}\n' % (feature.class_name(),
+                                           ','.join([str(v) for v in feature.LegalValues()]))
+    content += '@ATTRIBUTE class {%s}\n\n' % ','.join(class_values)
+
+    content += '@DATA\n'
+    for value in extracted.values():
+      content += ','.join([','.join([str(v) for v in value[0]]), value[1]]) + '\n'
+
+  response = HttpResponse(content, mimetype='application/octet-stream')
+  response['Content-Disposition'] = "attachment; filename=party_votes_%s.arff" % party.id
+  return response
