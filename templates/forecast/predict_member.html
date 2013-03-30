@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>תחזית עבור {{ party.name }}</h1>
+<h1>תחזית עבור {{ member.name }}</h1>
 <h2>בחר מאפיינים ליצירת התחזיות</h2>
-<form action="/forecast/predict/party/{{ party.id }}/bill/" method="POST">
+<form action="/forecast/predict/member/{{ member.id }}/bill/" method="POST">
   {% csrf_token %}
   {% for feature in features %}
     <input type="checkbox"

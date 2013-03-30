@@ -1,13 +1,35 @@
 {% extends "base_with_tables.html" %}
 
 {% block content %}
-<h1>ערוך הצעת חוק כדי לקבל תחזית</h1>
-<div>
-  <table id="featureTable" class="tablesorter">
+<div class="navbar navbar-fixed-top">
+  <div class="navbar-inner">
+    <div class="container">
+      <div class="nav-collapse collapse" id="main-menu">
+        <ul class="nav pull-left" id="main-menu-right">
+          <li><a>Feature review</a></li>
+        </ul>
+        <ul class="nav pull-right" id="main-menu-right">
+          <li><a href="download">Download</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="container" style="color:#f6f6f6">
+  place holder
+</div>
+<div class="container" style="color:#f6f6f6">
+  place holder
+</div>
+<div class="container" style="color:#f6f6f6">
+  place holder
+</div>
+<div class="container">
+  <table id="featureTable" class="tablesorter table table-bordered table-striped table-hover">
     <thead>
       <tr>
         <th>ID</th>
-        <th>תיאור</th>
+        <th>Name</th>
         {% for feature in features %}
           <th>{{ feature.name }}</th>
         {% endfor %}
