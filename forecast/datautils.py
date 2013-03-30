@@ -17,6 +17,4 @@ def erase(request):
   Bill.objects.all().delete()
   Agenda.objects.all().delete()
 
-  return render_to_response('index.html', {
-      'notification': 'The DB had been wiped'
-    })
+  return render_to_response('db_erased.html')
