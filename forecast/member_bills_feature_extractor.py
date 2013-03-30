@@ -14,38 +14,43 @@ class MemberBillFeaturesUtils:
       decisions.AddDecision(decision)
     return decisions.GetDecision()
 
+# Feature 1: Member<>Bill
 class MemberProposedBillFeature(BooleanFeature):
   """Feature is True if the member was one of the proposers of the bill."""
   def __init__(self):
-    Feature.__init__(self, "Member proposed the Bill")
+    Feature.__init__(self, "Member proposed the bill")
 
   def Extract(self, member, bill):
     return (member in bill.proposing_members.all())
 
-class MemberJoinedBillFeature(BooleanFeature):
-  """Feature is True if the member was one of the joiners of the bill."""
+# Feature 2: Member<>Bill
+class MemberSupportedBillFeature(BooleanFeature):
+  """Feature is True if the member was one of the joiners or proposers of the bill."""
   def __init__(self):
-    Feature.__init__(self, "Member joined the Bill")
+    Feature.__init__(self, "Member supported the bill")
 
   def Extract(self, member, bill):
-    return (member in bill.joining_members.all())
+    return (member in bill.joining_members.all()) or (member in bill.proposing_members.all())
 
+# Feature 3: Member<>Bill
 class MemberInBillProposingPartyFeature(BooleanFeature):
   """Feature is True if the member is in a party that proposed the bill."""
   def __init__(self):
-    Feature.__init__(self, "Member in a Party that proposed the Bill")
+    Feature.__init__(self, "Member in bill proposing party")
 
   def Extract(self, member, bill):
     return (member.party in bill.ProposingParties())
 
-class MemberInBillJoiningPartyFeature(BooleanFeature):
-  """Feature is True if the member is in a party that joined the bill."""
+# Feature 4: Member<>Bill
+class MemberInBillSupportingPartyFeature(BooleanFeature):
+  """Feature is True if the member is in a party that joined or proposed the bill."""
   def __init__(self):
-    Feature.__init__(self, "Member in a Party that joined the Bill")
+    Feature.__init__(self, "Member in bill supporting party")
 
   def Extract(self, member, bill):
     return (member.party in bill.JoiningParties())
 
+# Feature 5: Member
 class MemberInCoalitionFeature(BooleanFeature):
   """Feature is True if the member is in the coalition."""
   def __init__(self):
@@ -54,22 +59,7 @@ class MemberInCoalitionFeature(BooleanFeature):
   def Extract(self, member, bill):
     return member.party.is_in_coalition
 
-# TODO(lagi): this is wrong, it doesn't do what's written in the documentation!!
-class MemberSupportsBillAgendaFeature(BooleanFeature):
-  """Feature is True if the member supports an agenda that the bill promotes."""
-  def __init__(self):
-    Feature.__init__(self, "Member supports an agenda that the bill promotes")
-
-  def Extract(self, member, bill):
-    decisions = MajorityDecision()
-    for party_member in member.party.member_set.all():
-      if member.id == party_member.id:
-        continue
-      decisions.AddDecision(
-          MemberBillFeaturesUtils.ExtractClassification(party_member, bill))
-
-    return decisions.GetDecision() == 'FOR'
-
+# Feature 6
 class BillHasKeyWords(Feature):
   """Feature states a classification if the title of the bill contains a words that were unique to a specific category."""
   def __init__(self, bag_of_words):
@@ -96,16 +86,17 @@ class BillHasKeyWords(Feature):
 def MemberBillsFeatures(bag_of_words):
   if not bag_of_words:
     raise Exception("Bag of words can't be None")
-  return [MemberProposedBillFeature(),
-          MemberJoinedBillFeature(),
-          MemberInBillProposingPartyFeature(),
-          MemberInBillJoiningPartyFeature(),
-          MemberInCoalitionFeature(),
-          BillProposingPartyInCoalitionFeature(),
-          BillJoiningPartyInCoalitionFeature(),
-          BillProposingPartyInOpositionFeature(),
-          BillJoiningPartyInOpositionFeature(),
-          BillHasKeyWords(bag_of_words)]
+  return [MemberProposedBillFeature(), # Feature 1
+          MemberSupportedBillFeature(), # Feature 2
+          MemberInBillProposingPartyFeature(), # Feature 3
+          MemberInBillSupportingPartyFeature(), # Feature 4
+          MemberInCoalitionFeature(), # Feature 5
+          BillProposingPartyInCoalitionFeature(), # Feature 1 @feature.py
+          BillSupportingPartyInCoalitionFeature(), # Feature 2 @feature.py
+          BillProposingPartyInOppositionFeature(), # Feature 3 @feature.py
+          BillSupportingPartyInOppositionFeature(), # Feature 4 @feature.py
+          # BillHasKeyWords(bag_of_words), # Feature 6
+         ]
 
 class MemberBillsFeatureExtractor:
   def Extract(self, member, bills, features):

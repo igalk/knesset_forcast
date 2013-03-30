@@ -43,7 +43,9 @@ class Agenda(models.Model):
   description = models.TextField()
   img_url = models.URLField()
   owner = models.CharField(max_length=200)
+  members = models.ManyToManyField(Member, through='MemberAgenda')
   parties = models.ManyToManyField(Party, through='PartyAgenda')
+  votes = models.ManyToManyField(Vote, through='VoteAgenda')
 
   def __unicode__(self):
     return u"%s (%s)" % (self.name, self.id)

@@ -37,38 +37,46 @@ class MajorityDecision:
       return 'ABSTAIN'
     return 'NO_SHOW'
 
+# Feature 1: Bill
 class BillProposingPartyInCoalitionFeature(BooleanFeature):
   """Feature is True if the bill was proposed by a party in the coalition."""
   def __init__(self):
-    Feature.__init__(self, "Bill proposed by party in the coalition")
+    Feature.__init__(self, "Bill proposed by a party in the coalition")
 
   def Extract(self, no_one, bill):
     return any([proposing_party.is_in_coalition
                 for proposing_party in bill.ProposingParties()])
 
-class BillJoiningPartyInCoalitionFeature(BooleanFeature):
+# Feature 2: Bill
+class BillSupportingPartyInCoalitionFeature(BooleanFeature):
   """Feature is True if the bill was joined by a party in the coalition."""
   def __init__(self):
     Feature.__init__(self, "Bill joined by party in the coalition")
 
   def Extract(self, no_one, bill):
-    return any([joining_party.is_in_coalition
-                for joining_party in bill.JoiningParties()])
+    return (any([joining_party.is_in_coalition
+                for joining_party in bill.JoiningParties()]) or
+            any([proposing_party.is_in_coalition
+                for proposing_party in bill.ProposingParties()]))
 
-class BillProposingPartyInOpositionFeature(BooleanFeature):
+# Feature 3: Bill
+class BillProposingPartyInOppositionFeature(BooleanFeature):
   """Feature is True if the bill was proposed by a party in the oposition."""
   def __init__(self):
     Feature.__init__(self, "Bill proposed by party in the oposition")
 
   def Extract(self, no_one, bill):
-    return any([not proposing_party.is_in_coalition
+    return any([(not proposing_party.is_in_coalition)
                 for proposing_party in bill.ProposingParties()])
 
-class BillJoiningPartyInOpositionFeature(BooleanFeature):
+# Feature 4: Bill
+class BillSupportingPartyInOppositionFeature(BooleanFeature):
   """Feature is True if the bill was joined by a party in the oposition."""
   def __init__(self):
     Feature.__init__(self, "Bill joined by party in the oposition")
 
   def Extract(self, no_one, bill):
-    return any([not joining_party.is_in_coalition
-                for joining_party in bill.JoiningParties()])
+    return (any([(not joining_party.is_in_coalition)
+                for joining_party in bill.JoiningParties()]) or
+            any([(not proposing_party.is_in_coalition)
+                for proposing_party in bill.ProposingParties()]))
