@@ -53,8 +53,9 @@ def FeatureDownloadForMember(request, member_id):
   feature_extractor = MemberBillsFeatureExtractor()
   class_values = sorted(['FOR', 'AGAINST', 'ABSTAIN', 'NO_SHOW'])
 
-  votes = Vote.objects.filter(votememberdecision__member_id=member.id)
-  bills = Bill.objects.filter(vote__id__in=[vote.id for vote in votes])
+  # votes = Vote.objects.filter(votememberdecision__member_id=member.id)
+  # bills = Bill.objects.filter(vote__id__in=[vote.id for vote in votes])
+  bills = Bill.objects.all()
 
   # Build bag of words
   with Process('Building bag of words for member %s' % member.id):
@@ -122,10 +123,11 @@ def FeatureDownloadForParty(request, party_id):
   feature_extractor = PartyBillsFeatureExtractor()
   class_values = sorted(['FOR', 'AGAINST', 'ABSTAIN', 'NO_SHOW'])
 
-  votes = set()
-  for member in party.member_set.all():
-    votes = votes.union(Vote.objects.filter(votememberdecision__member_id=member.id))
-  bills = Bill.objects.filter(vote__id__in=[vote.id for vote in votes])
+  # votes = set()
+  # for member in party.member_set.all():
+  #   votes = votes.union(Vote.objects.filter(votememberdecision__member_id=member.id))
+  # bills = Bill.objects.filter(vote__id__in=[vote.id for vote in votes])
+  bills = Bill.objects.all()
 
   # Build bag of words
   with Process('Building bag of words for party %s' % party.id):

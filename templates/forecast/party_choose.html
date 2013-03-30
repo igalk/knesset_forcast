@@ -1,17 +1,36 @@
 {% extends "base_with_tables.html" %}
 
 {% block content %}
+<div class="navbar navbar-fixed-top">
+  <div class="navbar-inner">
+    <div class="container">
+      <div class="nav-collapse collapse" id="main-menu">
+        <ul class="nav pull-left" id="main-menu-right">
+          <li><a>Choose party to get predictor</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="container" style="color:#f6f6f6">
+  place holder
+</div>
+<div class="container" style="color:#f6f6f6">
+  place holder
+</div>
+<div class="container" style="color:#f6f6f6">
+  place holder
+</div>
 {% if parties_list %}
-  <h1>בחר מפלגה לקבלת תחזית</h1>
-  <div>
-    <table id="partyTable" class="tablesorter">
+  <div class="container" dir="ltr">
+    <table id="partyTable" class="tablesorter table table-bordered table-striped table-hover">
     <thead>
-    <tr>
-      <th>ID</th>
-      <th>שם</th>
-      <th>מושבים</th>
-      <th>בקואליציה?</th>
-    </tr>
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Num. seats</th>
+        <th>In coalition?</th>
+      </tr>
     </thead>
     <tbody>
     {% for party in parties_list %}

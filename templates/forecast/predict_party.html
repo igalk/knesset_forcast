@@ -1,18 +1,50 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>תחזית עבור {{ party.name }}</h1>
-<h2>בחר מאפיינים ליצירת התחזיות</h2>
-<form action="/forecast/predict/party/{{ party.id }}/bill/" method="POST">
-  {% csrf_token %}
-  {% for feature in features %}
-    <input type="checkbox"
-           name="feature{{ forloop.counter }}"
-           id="feature{{ forloop.counter }}"
-           checked>
-      {{ feature.name }}
-      </input><br/>
-  {% endfor %}
-  <input type="submit" value="המשך>"/>
-</form>
+  <div class="navbar navbar-fixed-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <div class="nav-collapse collapse" id="main-menu">
+          <ul class="nav pull-left" id="main-menu-right">
+            <li><a>Select features for {{ party.name }}</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="container" style="color:#f6f6f6">
+    place holder
+  </div>
+  <div class="container" style="color:#f6f6f6">
+    place holder
+  </div>
+  <div class="container" style="color:#f6f6f6">
+    place holder
+  </div>
+  <div class="container">
+    <div class="row">
+      <div class="span12">
+        <div class="hero-unit">
+          <form action="/forecast/predict/party/{{ party.id }}/bill/" method="POST">
+            {% csrf_token %}
+            {% for feature in features %}
+              <div class="row">
+                <div class="span1">
+                  <input type="checkbox"
+                         name="feature{{ forloop.counter }}"
+                         id="feature{{ forloop.counter }}"
+                         checked />
+                </div>
+                <div>{{ feature.name }}</div>
+              </div>
+            {% endfor %}
+            <div class="row">
+              <div class="span1"/>
+              <input class="btn" type="submit" value="Go"/>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
 {% endblock %}
