@@ -25,7 +25,7 @@ def SelectFeaturesForMemberPrediction(request, member_id):
 
 def BillOverviewForMemberPrediction(request, member_id):
   member = get_object_or_404(Member, pk=member_id)
-  bills = Bill.objects.all()
+  bills = [bill for bill in Bill.objects.all() if bill.vote_set.all()]
 
   bag_of_words = Build(member=member)
   features = MemberBillsFeatures(bag_of_words)
@@ -55,7 +55,7 @@ def FeatureDownloadForMember(request, member_id):
 
   # votes = Vote.objects.filter(votememberdecision__member_id=member.id)
   # bills = Bill.objects.filter(vote__id__in=[vote.id for vote in votes])
-  bills = Bill.objects.all()
+  bills = [bill for bill in Bill.objects.all() if bill.vote_set.all()]
 
   # Build bag of words
   with Process('Building bag of words for member %s' % member.id):
@@ -78,7 +78,9 @@ def FeatureDownloadForMember(request, member_id):
     content += '@ATTRIBUTE class {%s}\n\n' % ','.join(class_values)
 
     content += '@DATA\n'
-    for value in extracted.values():
+    values = extracted.values()
+    values.sort(key=lambda v: v[2])
+    for value in values:
       content += ','.join([','.join([str(v) for v in value[0]]), value[1]]) + '\n'
 
   response = HttpResponse(content, mimetype='application/octet-stream')
@@ -95,7 +97,7 @@ def SelectFeaturesForPartyPrediction(request, party_id):
 
 def BillOverviewForPartyPrediction(request, party_id):
   party = get_object_or_404(Party, pk=party_id)
-  bills = Bill.objects.all()
+  bills = [bill for bill in Bill.objects.all() if bill.vote_set.all()]
 
   bag_of_words = Build(party=party)
   features = PartyBillsFeatures(bag_of_words)
@@ -127,7 +129,7 @@ def FeatureDownloadForParty(request, party_id):
   # for member in party.member_set.all():
   #   votes = votes.union(Vote.objects.filter(votememberdecision__member_id=member.id))
   # bills = Bill.objects.filter(vote__id__in=[vote.id for vote in votes])
-  bills = Bill.objects.all()
+  bills = [bill for bill in Bill.objects.all() if bill.vote_set.all()]
 
   # Build bag of words
   with Process('Building bag of words for party %s' % party.id):
@@ -150,7 +152,9 @@ def FeatureDownloadForParty(request, party_id):
     content += '@ATTRIBUTE class {%s}\n\n' % ','.join(class_values)
 
     content += '@DATA\n'
-    for value in extracted.values():
+    values = extracted.values()
+    values.sort(key=lambda v: v[2])
+    for value in values:
       content += ','.join([','.join([str(v) for v in value[0]]), value[1]]) + '\n'
 
   response = HttpResponse(content, mimetype='application/octet-stream')

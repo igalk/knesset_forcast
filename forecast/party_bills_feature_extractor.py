@@ -95,6 +95,7 @@ class PartyBillsFeatureExtractor:
       for feature in features:
         values.append(feature.Extract(party, bill))
       classification = PartyBillFeaturesUtils.ExtractClassification(party, bill)
-      feature_values[bill.id] = tuple((tuple(values), classification))
+      bill_date = max([vote.time for vote in bill.vote_set.all()])
+      feature_values[bill.id] = tuple((tuple(values), classification, bill_date))
 
     return feature_values
