@@ -1,18 +1,37 @@
 {% extends "base_with_tables.html" %}
 
 {% block content %}
+<div class="navbar navbar-fixed-top">
+  <div class="navbar-inner">
+    <div class="container">
+      <div class="nav-collapse collapse" id="main-menu">
+        <ul class="nav pull-left" id="main-menu-right">
+          <li><a>Choose member to get predictor</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="container" style="color:#f6f6f6">
+  place holder
+</div>
+<div class="container" style="color:#f6f6f6">
+  place holder
+</div>
+<div class="container" style="color:#f6f6f6">
+  place holder
+</div>
 {% if members_list %}
-  <h1>בחר ח"כ לקבלת תחזית</h1>
-  <div>
-    <table id="memberTable" class="tablesorter">
+  <div class="container" dir="ltr">
+    <table id="memberTable" class="tablesorter table table-bordered table-striped table-hover">
     <thead>
-    <tr>
-      <th>ID</th>
-      <th>שם</th>
-      <th>מפלגה</th>
-      <th>נוכחי</th>
-      <th>תפקיד</th>
-    </tr>
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Party</th>
+        <th>Is current?</th>
+        <th>Position</th>
+      </tr>
     </thead>
     <tbody>
     {% for member in members_list %}

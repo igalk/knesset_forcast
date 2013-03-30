@@ -26,4 +26,6 @@ urlpatterns = patterns('',
         'forecast.views.SelectFeaturesForPartyPrediction'),
     url(r'^predict/party/(?P<party_id>\d+)/bill/$',
         'forecast.views.BillOverviewForPartyPrediction'),
+    url(r'^predict/party/(?P<party_id>\d+)/bill/download$',
+        'forecast.views.FeatureDownloadForParty'),
 )
