@@ -134,6 +134,7 @@ class DataPopulator:
           bill = self._PopulateBill(data_item)
           print '='*40
 
+        # if data['meta']['next']:
         if data['meta']['next']:
           offset = data['meta']['offset'] + data['meta']['limit']
           cm = urllib.urlopen(BillURL(offset=offset))
@@ -148,7 +149,7 @@ class DataPopulator:
       traceback.print_exc()
       raise e
 
-  def _GetJSONData(self, url, max_tries=5, wait_between_retries=5):
+  def _GetJSONData(self, url, max_tries=10, wait_between_retries=5):
     tries = 0
     exc = None
     while tries <= max_tries:
@@ -428,6 +429,8 @@ class DataPopulator:
 
     for vote_item in data['votes']:
       vote_id = vote_item['id']
+      if vote_id not in self.votes:
+        continue
       vote = self.votes[vote_id]
 
       vote_agenda = VoteAgenda.objects.create(

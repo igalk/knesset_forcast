@@ -1,3 +1,5 @@
+from models import *
+
 class Feature:
   def __init__(self, name):
     self.name = name
@@ -14,6 +16,20 @@ class Feature:
 class BooleanFeature(Feature):
   def LegalValues(self):
     return tuple((True, False))
+
+class FeatureSet(Feature):
+  def __init__(self, name, features):
+    Feature.__init__(self, name)
+    self.features = features
+
+  def LegalValues(self):
+    return list([feature.LegalValues() for feature in self.features])
+
+  def Extract(self, member, bill):
+    return list([feature.Extract(member, bill) for feature in self.features])
+
+  def class_name(self):
+    return list([feature.class_name() for feature in self.features])
 
 DECISION_OPTIONS = ['FOR', 'AGAINST', 'ABSTAIN', 'NO_SHOW']
 
@@ -49,9 +65,9 @@ class BillProposingPartyInCoalitionFeature(BooleanFeature):
 
 # Feature 2: Bill
 class BillSupportingPartyInCoalitionFeature(BooleanFeature):
-  """Feature is True if the bill was joined by a party in the coalition."""
+  """Feature is True if the bill was supported by a party in the coalition."""
   def __init__(self):
-    Feature.__init__(self, "Bill joined by party in the coalition")
+    Feature.__init__(self, "Bill supported by party in the coalition")
 
   def Extract(self, no_one, bill):
     return (any([joining_party.is_in_coalition
@@ -71,12 +87,39 @@ class BillProposingPartyInOppositionFeature(BooleanFeature):
 
 # Feature 4: Bill
 class BillSupportingPartyInOppositionFeature(BooleanFeature):
-  """Feature is True if the bill was joined by a party in the oposition."""
+  """Feature is True if the bill was supported by a party in the oposition."""
   def __init__(self):
-    Feature.__init__(self, "Bill joined by party in the oposition")
+    Feature.__init__(self, "Bill supported by party in the oposition")
 
   def Extract(self, no_one, bill):
     return (any([(not joining_party.is_in_coalition)
                 for joining_party in bill.JoiningParties()]) or
             any([(not proposing_party.is_in_coalition)
                 for proposing_party in bill.ProposingParties()]))
+
+# Feature 5: Bill
+class BillSupportingAgendaFeature(FeatureSet):
+  """Feature is a score of how supporting the bill is for an agenda"""
+
+  class ScoredBillSupportingAgendaFeature(Feature):
+    def __init__(self, agenda):
+      Feature.__init__(self, "Bill supporting agenda %s" % str(agenda.id))
+      self.agenda = agenda
+      self.agenda_votes = set(agenda.votes.all())
+
+    def Extract(self, member, bill):
+      related = set(bill.vote_set.all()).intersection(self.agenda_votes)
+      vote_agendas = [VoteAgenda.objects.filter(agenda_id__exact=self.agenda.id, vote_id__exact=vote.id)[0]
+                      for vote in related]
+      score = sum([v.score for v in vote_agendas])
+      if score:
+        score /= abs(score)
+
+      return str(score)
+
+    def LegalValues(self):
+      return ['-1', '0', '1']
+
+  def __init__(self):
+    features = [self.ScoredBillSupportingAgendaFeature(agenda) for agenda in Agenda.objects.all()]
+    FeatureSet.__init__(self, "Bill supporting agenda", features)

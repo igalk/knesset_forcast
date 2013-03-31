@@ -25,7 +25,7 @@ class MemberProposedBillFeature(BooleanFeature):
 
 # Feature 2: Member<>Bill
 class MemberSupportedBillFeature(BooleanFeature):
-  """Feature is True if the member was one of the joiners or proposers of the bill."""
+  """Feature is True if the member supported the bill."""
   def __init__(self):
     Feature.__init__(self, "Member supported the bill")
 
@@ -43,7 +43,7 @@ class MemberInBillProposingPartyFeature(BooleanFeature):
 
 # Feature 4: Member<>Bill
 class MemberInBillSupportingPartyFeature(BooleanFeature):
-  """Feature is True if the member is in a party that joined or proposed the bill."""
+  """Feature is True if the member is in a party that supported the bill."""
   def __init__(self):
     Feature.__init__(self, "Member in bill supporting party")
 
@@ -95,6 +95,7 @@ def MemberBillsFeatures(bag_of_words):
           BillSupportingPartyInCoalitionFeature(), # Feature 2 @feature.py
           BillProposingPartyInOppositionFeature(), # Feature 3 @feature.py
           BillSupportingPartyInOppositionFeature(), # Feature 4 @feature.py
+          BillSupportingAgendaFeature(), # Feature 5 @feature.py
           # BillHasKeyWords(bag_of_words), # Feature 6
          ]
 
@@ -104,7 +105,10 @@ class MemberBillsFeatureExtractor:
     for bill in bills:
       values = []
       for feature in features:
-        values.append(feature.Extract(member, bill))
+        if isinstance(feature, FeatureSet):
+          values.extend(feature.Extract(member, bill))
+        else:
+          values.append(feature.Extract(member, bill))
       classification = MemberBillFeaturesUtils.ExtractClassification(member, bill)
       bill_date = max([vote.time for vote in bill.vote_set.all()])
       feature_values[bill.id] = tuple((tuple(values), classification, bill_date))
