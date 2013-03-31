@@ -3,11 +3,10 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import get_object_or_404, render_to_response
 from django.template import RequestContext
 from forecast.data_populator import DataPopulator
+from forecast.feature import *
 from forecast.models import *
-from forecast.member_bills_feature_extractor import MemberBillsFeatures
-from forecast.member_bills_feature_extractor import MemberBillsFeatureExtractor
-from forecast.party_bills_feature_extractor import PartyBillsFeatures
-from forecast.party_bills_feature_extractor import PartyBillsFeatureExtractor
+from forecast.member_bills_feature_extractor import *
+from forecast.party_bills_feature_extractor import *
 from search.words.bag_of_words import Build
 from process import Process
 
@@ -38,9 +37,15 @@ def BillOverviewForMemberPrediction(request, member_id):
       selected_features.append(features[int(param[len('feature'):])-1])
 
   feature_extractor = MemberBillsFeatureExtractor()
+  feature_names = []
+  for feature in selected_features:
+    if isinstance(feature, FeatureSet):
+      feature_names.extend([f.name for f in feature.features])
+    else:
+      feature_names.append(feature.name)
   feature_values = feature_extractor.Extract(member, bills, selected_features)
   return render_to_response('forecast/overview_bill.html', {
-      'features': selected_features,
+      'feature_names': feature_names,
       'feature_values': [{
           'bill': bill,
           'feature_values': feature_values[bill.id][0],
@@ -73,8 +78,15 @@ def FeatureDownloadForMember(request, member_id):
   with Process('Outputing arff for member %s' % member.id):
     content += '@RELATION decision\n\n'
     for feature in features:
-      content += '@ATTRIBUTE %s {%s}\n' % (feature.class_name(),
-                                           ','.join([str(v) for v in feature.LegalValues()]))
+      if isinstance(feature, FeatureSet):
+        classes = feature.class_name()
+        values = feature.LegalValues()
+        for i, class_name in enumerate(classes):
+          content += '@ATTRIBUTE %s {%s}\n' % (class_name,
+                                               ','.join([str(v) for v in values[i]]))
+      else:
+        content += '@ATTRIBUTE %s {%s}\n' % (feature.class_name(),
+                                             ','.join([str(v) for v in feature.LegalValues()]))
     content += '@ATTRIBUTE class {%s}\n\n' % ','.join(class_values)
 
     content += '@DATA\n'
@@ -110,9 +122,15 @@ def BillOverviewForPartyPrediction(request, party_id):
       selected_features.append(features[int(param[len('feature'):])-1])
 
   feature_extractor = PartyBillsFeatureExtractor()
+  feature_names = []
+  for feature in selected_features:
+    if isinstance(feature, FeatureSet):
+      feature_names.extend([f.name for f in feature.features])
+    else:
+      feature_names.append(feature.name)
   feature_values = feature_extractor.Extract(party, bills, selected_features)
   return render_to_response('forecast/overview_bill.html', {
-      'features': selected_features,
+      'feature_names': feature_names,
       'feature_values': [{
           'bill': bill,
           'feature_values': feature_values[bill.id][0],
@@ -147,8 +165,15 @@ def FeatureDownloadForParty(request, party_id):
   with Process('Outputing arff for party %s' % party.id):
     content += '@RELATION decision\n\n'
     for feature in features:
-      content += '@ATTRIBUTE %s {%s}\n' % (feature.class_name(),
-                                           ','.join([str(v) for v in feature.LegalValues()]))
+      if isinstance(feature, FeatureSet):
+        classes = feature.class_name()
+        values = feature.LegalValues()
+        for i, class_name in enumerate(classes):
+          content += '@ATTRIBUTE %s {%s}\n' % (class_name,
+                                               ','.join([str(v) for v in values[i]]))
+      else:
+        content += '@ATTRIBUTE %s {%s}\n' % (feature.class_name(),
+                                             ','.join([str(v) for v in feature.LegalValues()]))
     content += '@ATTRIBUTE class {%s}\n\n' % ','.join(class_values)
 
     content += '@DATA\n'

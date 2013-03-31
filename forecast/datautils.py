@@ -7,6 +7,7 @@ def erase(request):
   BillProposingMember.objects.all().delete() # Has to be deleted before Member&Bill
   BillJoiningMember.objects.all().delete() # Has to be deleted before Member&Bill
   VoteMemberDecision.objects.all().delete() # Has to be deleted before Member&Vote
+  MemberAgenda.objects.all().delete() # Has to be deleted before Member&Agenda
   PartyAgenda.objects.all().delete() # Has to be deleted before Party&Agenda
   Member.objects.all().delete() # Has to be deleted before Party
   Party.objects.all().delete()

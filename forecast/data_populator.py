@@ -36,14 +36,6 @@ def VoteURL(vote_id='', old=False):
   else:
     return OknessetURL('vote/%s' % vote_id)
 
-TEXT_SCORE_TO_SCORE = {
-    u'\u05ea\u05de\u05d9\u05db\u05d4 \u05de\u05dc\u05d0\u05d4': 1.0,
-    u'\u05ea\u05de\u05d9\u05db\u05d4 \u05d7\u05dc\u05e7\u05d9\u05ea': 0.5,
-    u'\u05dc\u05d0 \u05e0\u05d9\u05ea\u05df \u05dc\u05e7\u05d1\u05d5\u05e2': 0.0,
-    u'\u05d4\u05ea\u05e0\u05d2\u05d3\u05d5\u05ea \u05d7\u05dc\u05e7\u05d9\u05ea': -0.5,
-    u'\u05d4\u05ea\u05e0\u05d2\u05d3\u05d5\u05ea \u05de\u05dc\u05d0\u05d4': -1.0
-}
-
 class DataPopulator:
   """
   This is the main class that populates the data into the DB.
@@ -62,8 +54,8 @@ class DataPopulator:
   def PopulateAllData(self):
     self.PopulateAllParties()
     self.PopulateAllMembers()
-    self.PopulateAllAgendas()
     self.PopulateAllBills()
+    self.PopulateAllAgendas()
 
   def PopulateAllMembers(self):
     print '='*80
@@ -142,6 +134,7 @@ class DataPopulator:
           bill = self._PopulateBill(data_item)
           print '='*40
 
+        # if data['meta']['next']:
         if data['meta']['next']:
           offset = data['meta']['offset'] + data['meta']['limit']
           cm = urllib.urlopen(BillURL(offset=offset))
@@ -156,7 +149,7 @@ class DataPopulator:
       traceback.print_exc()
       raise e
 
-  def _GetJSONData(self, url, max_tries=5, wait_between_retries=5):
+  def _GetJSONData(self, url, max_tries=10, wait_between_retries=5):
     tries = 0
     exc = None
     while tries <= max_tries:
@@ -391,22 +384,6 @@ class DataPopulator:
       )
       vote_member_decision.save()
 
-    # TODO(lagi): move agenda votes to API V2
-    for agenda_data in data['agendas'].values():
-      agenda_id = int(agenda_data['id'])
-      if agenda_id not in self.agendas:
-        print 'WARN: skipping agenda %d' % agenda_data['id']
-        continue
-
-      agenda = self.agendas[agenda_id]
-      vote_agenda = VoteAgenda.objects.create(
-          agenda=agenda,
-          vote=vote,
-          score=self._GetAgendaSupportScore(agenda_data['text_score']),
-          reasoning=agenda_data['reasoning'],
-      )
-      vote_agenda.save()
-
     return vote
 
   def _PopulateAgendaById(self, agenda_id):
@@ -431,7 +408,7 @@ class DataPopulator:
     #print unicode(agenda)
 
     for party_item in data['parties']:
-      party_id = int(party_item['absolute_url'].split('/')[2])
+      party_id = party_item['id']
       party_agenda = PartyAgenda.objects.create(
           agenda=agenda,
           party=self.parties[party_id],
@@ -441,7 +418,7 @@ class DataPopulator:
       party_agenda.save()
 
     for member_item in data['members']:
-      member_id = int(member_item['absolute_url'].split('/')[2])
+      member_id = member_item['id']
       member_agenda = MemberAgenda.objects.create(
           agenda=agenda,
           member=self.members[member_id],
@@ -450,8 +427,18 @@ class DataPopulator:
       )
       member_agenda.save()
 
-    return agenda
-  
-  def _GetAgendaSupportScore(self, text_score):
-    return TEXT_SCORE_TO_SCORE.get(text_score, 0.0)
+    for vote_item in data['votes']:
+      vote_id = vote_item['id']
+      if vote_id not in self.votes:
+        continue
+      vote = self.votes[vote_id]
 
+      vote_agenda = VoteAgenda.objects.create(
+          agenda=agenda,
+          vote=vote,
+          score=vote_item['score'],
+          reasoning=vote_item['reasoning'],
+      )
+      vote_agenda.save()
+
+    return agenda

@@ -12,24 +12,27 @@ class PartyBillFeaturesUtils:
           MemberBillFeaturesUtils.ExtractClassification(member, bill))
     return decisions.GetDecision() 
 
+# Feature 1: Party<>Bill
 class PartyMemberProposedBillFeature(BooleanFeature):
   """Feature is True if a party member was one of the proposers of the bill."""
   def __init__(self):
     Feature.__init__(self, "Party member proposed the Bill")
 
   def Extract(self, party, bill):
-    return len(set(bill.proposing_members.all()).intersection(
-               set(party.member_set.all()))) > 0
+    return bool(set(bill.proposing_members.all()).intersection(
+                set(party.member_set.all())))
 
-class PartyMemberJoinedBillFeature(BooleanFeature):
-  """Feature is True if a party member was one of the joiners of the bill."""
+# Feature 2: Party<>Bill
+class PartyMemberSupportedBillFeature(BooleanFeature):
+  """Feature is True if a party member was supporting the bill."""
   def __init__(self):
-    Feature.__init__(self, "Party member joined the Bill")
+    Feature.__init__(self, "Party member supported the Bill")
 
   def Extract(self, party, bill):
-    return len(set(bill.joining_members.all()).intersection(
-               set(party.member_set.all()))) > 0
+    return bool(set(bill.joining_members.all()).intersection(
+                set(party.member_set.all())))
 
+# Feature 3: Party
 class PartyInCoalitionFeature(BooleanFeature):
   """Feature is True if the party is in the coalition."""
   def __init__(self):
@@ -38,19 +41,7 @@ class PartyInCoalitionFeature(BooleanFeature):
   def Extract(self, party, bill):
     return party.is_in_coalition
 
-#TODO (lagi): This doesn't do what's written in the documentation!!
-class PartySupportsBillAgendaFeature(BooleanFeature):
-  """Feature is True if the party supports an agenda that the bill promotes."""
-  def __init__(self):
-    Feature.__init__(self, "Party supports an agenda that the bill promotes")
-
-  def Extract(self, party, bill):
-    decisions = MajorityDecision()
-    for party_member in party.member_set.all():
-      decisions.AddDecision(
-          MemberBillFeaturesUtils.ExtractClassification(party_member, bill))
-    return decisions.GetDecision() == 'FOR'
-
+# Feature 4
 class BillHasKeyWords(Feature):
   """
   Feature states a classification if the title of the bill contains a words
@@ -81,11 +72,16 @@ class BillHasKeyWords(Feature):
 def PartyBillsFeatures(bag_of_words):
   if not bag_of_words:
     raise Exception("Bag of words can't be None")
-  return [PartyMemberProposedBillFeature(),
-          PartyMemberJoinedBillFeature(),
-          PartyInCoalitionFeature(),
-          PartySupportsBillAgendaFeature(),
-          BillHasKeyWords(bag_of_words)]
+  return [PartyMemberProposedBillFeature(), # Feature 1
+          PartyMemberSupportedBillFeature(), # Feature 2
+          PartyInCoalitionFeature(), # Feature 3
+          BillProposingPartyInCoalitionFeature(), # Feature 1 @feature.py
+          BillSupportingPartyInCoalitionFeature(), # Feature 2 @feature.py
+          BillProposingPartyInOppositionFeature(), # Feature 3 @feature.py
+          BillSupportingPartyInOppositionFeature(), # Feature 4 @feature.py
+          BillSupportingAgendaFeature(), # Feature 5 @feature.py
+          # BillHasKeyWords(bag_of_words), # Feature 4
+         ]
 
 class PartyBillsFeatureExtractor:
   def Extract(self, party, bills, features):
@@ -93,7 +89,10 @@ class PartyBillsFeatureExtractor:
     for bill in bills:
       values = []
       for feature in features:
-        values.append(feature.Extract(party, bill))
+        if isinstance(feature, FeatureSet):
+          values.extend(feature.Extract(party, bill))
+        else:
+          values.append(feature.Extract(party, bill))
       classification = PartyBillFeaturesUtils.ExtractClassification(party, bill)
       bill_date = max([vote.time for vote in bill.vote_set.all()])
       feature_values[bill.id] = tuple((tuple(values), classification, bill_date))
