@@ -1,3 +1,5 @@
+import cgi
+
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import get_object_or_404, render_to_response
@@ -7,6 +9,7 @@ from forecast.feature import *
 from forecast.models import *
 from forecast.member_bills_feature_extractor import *
 from forecast.party_bills_feature_extractor import *
+from forecast.weka import WekaRunner
 from search.words.bag_of_words import Build
 from process import Process
 
@@ -58,12 +61,17 @@ def MemberArffGenerate(member_id, filename):
   open(filename, "w").write(content)
 
 def FeatureDownloadForMember(request, member_id):
-  self.MemberArffGenerate(member_id, "/tmp/member_votes_%s.arff" % member_id)
+  arff_input = "/tmp/member_votes_%s.arff" % member_id
+  MemberArffGenerate(member_id, arff_input)
 
-  return HttpResponse("tree 1,2,3")
+  weka_runner = WekaRunner()
+  weka_output = weka_runner.run(WekaRunner.J48, arff_input)
+
+  weka_output = cgi.escape(weka_output.replace("\n", "<br/>"))
+  return HttpResponse(weka_output)
 
 def ArffGenerateForMember(request, member_id):
-  self.MemberArffGenerate(member_id, "/tmp/member_votes_%s.arff" % member_id)
+  MemberArffGenerate(member_id, "/tmp/member_votes_%s.arff" % member_id)
   return HttpResponse("File ready")
 
 def ArffDownloadForMember(request, member_id):
@@ -118,12 +126,17 @@ def PartyArffGenerate(party_id, filename):
   open(filename, "w").write(content)
 
 def FeatureDownloadForParty(request, party_id):
-  self.PartyArffGenerate(party_id, "/tmp/party_votes_%s.arff" % party_id)
+  arff_input = "/tmp/party_votes_%s.arff" % party_id
+  PartyArffGenerate(party_id, arff_input)
 
-  return HttpResponse("tree 1,2,3")
+  weka_runner = WekaRunner()
+  weka_output = weka_runner.run(WekaRunner.J48, arff_input)
+
+  weka_output = cgi.escape(weka_output).replace("\n", "<br/>")
+  return HttpResponse(weka_output)
 
 def ArffGenerateForParty(request, party_id):
-  self.PartyArffGenerate(party_id, "/tmp/party_votes_%s.arff" % party_id)
+  PartyArffGenerate(party_id, "/tmp/party_votes_%s.arff" % party_id)
   return HttpResponse("File ready")
 
 def ArffDownloadForParty(request, party_id):
