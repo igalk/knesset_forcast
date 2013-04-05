@@ -80,6 +80,7 @@ def PartyBillsFeatures(bag_of_words):
           BillProposingPartyInOppositionFeature(), # Feature 3 @feature.py
           BillSupportingPartyInOppositionFeature(), # Feature 4 @feature.py
           BillSupportingAgendaFeature(), # Feature 5 @feature.py
+          BillHasTagFeature(), # Feature 6 @feature.py
           # BillHasKeyWords(bag_of_words), # Feature 4
          ]
 

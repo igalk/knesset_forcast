@@ -59,7 +59,7 @@ class MemberInCoalitionFeature(BooleanFeature):
   def Extract(self, member, bill):
     return member.party.is_in_coalition
 
-# Feature 7
+# Feature 6
 class BillHasKeyWords(Feature):
   """Feature states a classification if the title of the bill contains a words that were unique to a specific category."""
   def __init__(self, bag_of_words):

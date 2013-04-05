@@ -130,7 +130,7 @@ class BillSupportingAgendaFeature(FeatureSet):
 
 # Feature 6: Bill
 class BillHasTagFeature(FeatureSet):
-  """Feature is a score of how supporting the bill is for an agenda"""
+  """Feature is a boolean value indicating that the bill has this tag"""
 
   class BillHasSingleTagFeature(Feature):
     def __init__(self, tag):
