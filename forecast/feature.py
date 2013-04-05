@@ -109,11 +109,17 @@ class BillSupportingAgendaFeature(FeatureSet):
 
     def Extract(self, member, bill):
       related = set(bill.vote_set.all()).intersection(self.agenda_votes)
+
+      num_bill_agendas = sum([len(VoteAgenda.objects.filter(vote_id__exact=vote.id))
+                              for vote in bill.vote_set.all()])
+      if num_bill_agendas == 0:
+        return '?'
+
       vote_agendas = [VoteAgenda.objects.filter(agenda_id__exact=self.agenda.id, vote_id__exact=vote.id)[0]
                       for vote in related]
 
-      if not vote_agendas:
-        return '?'
+      #if not vote_agendas:
+      #  return '?'
 
       score = sum([v.score for v in vote_agendas])
       if score:
