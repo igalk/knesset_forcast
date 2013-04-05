@@ -16,7 +16,7 @@ def FetchAllData(request):
 
 def FeatureDownloadForMember(request, member_id):
   member = get_object_or_404(Member, pk=member_id)
-
+  
   feature_extractor = MemberBillsFeatureExtractor()
   class_values = sorted(['FOR', 'AGAINST', 'ABSTAIN', 'NO_SHOW'])
 
@@ -55,9 +55,10 @@ def FeatureDownloadForMember(request, member_id):
     for value in values:
       content += ','.join([','.join([str(v) for v in value[0]]), value[1]]) + '\n'
 
-  response = HttpResponse(content, mimetype='application/octet-stream')
-  response['Content-Disposition'] = "attachment; filename=member_votes_%s.arff" % member.id
-  return response
+  return HttpResponse("tree 1,2,3")
+  # response = HttpResponse(content, mimetype='application/octet-stream')
+  # response['Content-Disposition'] = "attachment; filename=member_votes_%s.arff" % member.id
+  # return response
 
 def FeatureDownloadForParty(request, party_id):
   party = get_object_or_404(Party, pk=party_id)
@@ -100,6 +101,7 @@ def FeatureDownloadForParty(request, party_id):
     for value in values:
       content += ','.join([','.join([str(v) for v in value[0]]), value[1]]) + '\n'
 
-  response = HttpResponse(content, mimetype='application/octet-stream')
-  response['Content-Disposition'] = "attachment; filename=party_votes_%s.arff" % party.id
-  return response
+  return HttpResponse("tree 1,2,3")
+  # response = HttpResponse(content, mimetype='application/octet-stream')
+  # response['Content-Disposition'] = "attachment; filename=party_votes_%s.arff" % party.id
+  # return response
