@@ -4,11 +4,22 @@
 <script>
 function showModal(party_name, party_id) {
   $('#modalHeader').html("Learning " + party_name + "'s secrets");
-  $('#pageModal').modal();
+  $("#downloadLink")[0].setAttribute("href", "javascript:downloadArff(" + party_id + ")");
+  $("#showLive")[0].setAttribute("href", "javascript:showLive(" + party_id + ")");
+  $("#pageModal").modal();
+}
+
+function downloadArff(party_id) {
+  $.get("/forecast/party/" + party_id + "/arff", function(data) {
+    window.location = "/forecast/party/" + party_id + "/arff/download";
+  });  
+}
+
+function showLive(party_id) {
   $.get("/forecast/party/" + party_id, function(data) {
     $("#modalBody").html(data);
     $("#pageModal").modal();
-  });
+  });  
 }
 </script>
 {% endblock %}
@@ -73,6 +84,8 @@ function showModal(party_name, party_id) {
     <div id="modalBody" class="modal-body">
     </div>
     <div class="modal-footer">
+      <a id="downloadLink" class="btn" aria-hidden="true">Download arff</a>
+      <a id="showLive" class="btn" aria-hidden="true">Show live</a>
       <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
     </div>
   </div>
