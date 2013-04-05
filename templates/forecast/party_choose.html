@@ -1,24 +1,40 @@
 {% extends "base_with_tables.html" %}
 
+{% block scripts %}
+<script>
+function showModal(party_name, party_id) {
+  $('#modalHeader').html("Learning " + party_name + "'s secrets");
+  $('#pageModal').modal();
+  $.get("/forecast/party/" + party_id, function(data) {
+    $("#modalBody").html(data);
+    $("#pageModal").modal();
+  });
+}
+</script>
+{% endblock %}
+
 {% block content %}
 <div class="navbar navbar-fixed-top">
   <div class="navbar-inner">
     <div class="container">
       <div class="nav-collapse collapse" id="main-menu">
-        <ul class="nav pull-left" id="main-menu-right">
+        <ul class="nav pull-left" id="main-menu-left">
           <li><a>Choose party to get predictor</a></li>
+        </ul>
+        <ul class="nav pull-right" id="main-menu-right">
+          <li><a href="/">Home</a></li>
         </ul>
       </div>
     </div>
   </div>
 </div>
-<div class="container" style="color:#f6f6f6">
+<div class="container" style="color:#ffffff">
   place holder
 </div>
-<div class="container" style="color:#f6f6f6">
+<div class="container" style="color:#ffffff">
   place holder
 </div>
-<div class="container" style="color:#f6f6f6">
+<div class="container" style="color:#ffffff">
   place holder
 </div>
 {% if parties_list %}
@@ -36,7 +52,7 @@
     {% for party in parties_list %}
       <tr>
         <th>{{ party.id }}</th>
-        <th><a href="/forecast/predict/party/{{ party.id }}/">{{ party.name }}</a></th>
+        <th><a href="javascript:showModal('{{ party.name }}', {{ party.id }})">{{ party.name }}</a></th>
         <th>{{ party.number_of_seats }}</th>
         <th>{% if party.is_in_coalition %}כן{% else %}לא{% endif %}</th>
       </tr>
@@ -49,6 +65,17 @@
       $("#partyTable").tablesorter();
     });
   </script>
+  <div id="pageModal" class="modal hide fade">
+    <div class="modal-header">
+      <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+      <h3 id="modalHeader"></h3>
+    </div>
+    <div id="modalBody" class="modal-body">
+    </div>
+    <div class="modal-footer">
+      <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+    </div>
+  </div>
 {% else %}
   <p>רשימת המפלגות ריקה.</p>
   <a href="/forecast/fetch/">ייבא רשימת מפלגות מחדש</a>
