@@ -111,11 +111,15 @@ class BillSupportingAgendaFeature(FeatureSet):
       related = set(bill.vote_set.all()).intersection(self.agenda_votes)
       vote_agendas = [VoteAgenda.objects.filter(agenda_id__exact=self.agenda.id, vote_id__exact=vote.id)[0]
                       for vote in related]
+
+      if not vote_agendas:
+        return '?'
+
       score = sum([v.score for v in vote_agendas])
       if score:
         score /= abs(score)
 
-      return str(score)
+      return str(int(score))
 
     def LegalValues(self):
       return ['-1', '0', '1']
@@ -123,3 +127,25 @@ class BillSupportingAgendaFeature(FeatureSet):
   def __init__(self):
     features = [self.ScoredBillSupportingAgendaFeature(agenda) for agenda in Agenda.objects.all()]
     FeatureSet.__init__(self, "Bill supporting agenda", features)
+
+# Feature 6: Bill
+class BillHasTagFeature(FeatureSet):
+  """Feature is a score of how supporting the bill is for an agenda"""
+
+  class BillHasSingleTagFeature(Feature):
+    def __init__(self, tag):
+      Feature.__init__(self, "Bill has tag %s" % str(tag.id))
+      self.tag = tag
+
+    def Extract(self, member, bill):
+      bill_tag = BillTag.objects.filter(tag_id__exact=self.tag.id, bill_id__exact=bill.id)
+      if bill_tag:
+        return '1'
+      return '0'
+
+    def LegalValues(self):
+      return ['0', '1']
+
+  def __init__(self):
+    features = [self.BillHasSingleTagFeature(tag) for tag in Tag.objects.all()]
+    FeatureSet.__init__(self, "Bill has tag", features)
