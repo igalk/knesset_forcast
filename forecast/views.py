@@ -14,44 +14,6 @@ def FetchAllData(request):
   DataPopulator().PopulateAllData()
   return HttpResponseRedirect(reverse('members_choose'))
 
-def SelectFeaturesForMemberPrediction(request, member_id):
-  member = get_object_or_404(Member, pk=member_id)
-  bag_of_words = Build(member=member)
-  return render_to_response('forecast/predict_member.html', {
-      'member': member,
-      'features': MemberBillsFeatures(bag_of_words),
-    }, context_instance=RequestContext(request))
-
-def BillOverviewForMemberPrediction(request, member_id):
-  member = get_object_or_404(Member, pk=member_id)
-  bills = [bill for bill in Bill.objects.all() if bill.vote_set.all()]
-
-  bag_of_words = Build(member=member)
-  features = MemberBillsFeatures(bag_of_words)
-
-  params = request.POST.keys()
-  params.sort()
-  selected_features = []
-  for param in params:
-    if param.startswith('feature'):
-      selected_features.append(features[int(param[len('feature'):])-1])
-
-  feature_extractor = MemberBillsFeatureExtractor()
-  feature_names = []
-  for feature in selected_features:
-    if isinstance(feature, FeatureSet):
-      feature_names.extend([f.name for f in feature.features])
-    else:
-      feature_names.append(feature.name)
-  feature_values = feature_extractor.Extract(member, bills, selected_features)
-  return render_to_response('forecast/overview_bill.html', {
-      'feature_names': feature_names,
-      'feature_values': [{
-          'bill': bill,
-          'feature_values': feature_values[bill.id][0],
-        } for bill in bills],
-    })
-
 def FeatureDownloadForMember(request, member_id):
   member = get_object_or_404(Member, pk=member_id)
 
@@ -98,44 +60,6 @@ def FeatureDownloadForMember(request, member_id):
   response = HttpResponse(content, mimetype='application/octet-stream')
   response['Content-Disposition'] = "attachment; filename=member_votes_%s.arff" % member.id
   return response
-
-def SelectFeaturesForPartyPrediction(request, party_id):
-  party = get_object_or_404(Party, pk=party_id)
-  bag_of_words = Build(party=party)
-  return render_to_response('forecast/predict_party.html', {
-      'party': party,
-      'features': PartyBillsFeatures(bag_of_words),
-    }, context_instance=RequestContext(request))
-
-def BillOverviewForPartyPrediction(request, party_id):
-  party = get_object_or_404(Party, pk=party_id)
-  bills = [bill for bill in Bill.objects.all() if bill.vote_set.all()]
-
-  bag_of_words = Build(party=party)
-  features = PartyBillsFeatures(bag_of_words)
-
-  params = request.POST.keys()
-  params.sort()
-  selected_features = []
-  for param in params:
-    if param.startswith('feature'):
-      selected_features.append(features[int(param[len('feature'):])-1])
-
-  feature_extractor = PartyBillsFeatureExtractor()
-  feature_names = []
-  for feature in selected_features:
-    if isinstance(feature, FeatureSet):
-      feature_names.extend([f.name for f in feature.features])
-    else:
-      feature_names.append(feature.name)
-  feature_values = feature_extractor.Extract(party, bills, selected_features)
-  return render_to_response('forecast/overview_bill.html', {
-      'feature_names': feature_names,
-      'feature_values': [{
-          'bill': bill,
-          'feature_values': feature_values[bill.id][0],
-        } for bill in bills],
-    })
 
 def FeatureDownloadForParty(request, party_id):
   party = get_object_or_404(Party, pk=party_id)
