@@ -14,7 +14,7 @@ def FetchAllData(request):
   DataPopulator().PopulateAllData()
   return HttpResponseRedirect(reverse('members_choose'))
 
-def FeatureDownloadForMember(request, member_id):
+def MemberArffGenerate(member_id, filename):
   member = get_object_or_404(Member, pk=member_id)
   
   feature_extractor = MemberBillsFeatureExtractor()
@@ -23,8 +23,8 @@ def FeatureDownloadForMember(request, member_id):
   bills = [bill for bill in Bill.objects.all() if bill.vote_set.all()]
 
   # Build bag of words
-  # with Process('Building bag of words for member %s' % member.id):
-  #   bag_of_words = Build(member=member)
+  with Process('Building bag of words for member %s' % member.id):
+    bag_of_words = Build(member=member)
 
   # Build features
   with Process('Building features for member %s (%s bills)' % (member.id, len(bills))):
@@ -55,12 +55,26 @@ def FeatureDownloadForMember(request, member_id):
     for value in values:
       content += ','.join([','.join([str(v) for v in value[0]]), value[1]]) + '\n'
 
-  return HttpResponse("tree 1,2,3")
-  # response = HttpResponse(content, mimetype='application/octet-stream')
-  # response['Content-Disposition'] = "attachment; filename=member_votes_%s.arff" % member.id
-  # return response
+  open(filename, "w").write(content)
 
-def FeatureDownloadForParty(request, party_id):
+def FeatureDownloadForMember(request, member_id):
+  self.MemberArffGenerate(member_id, "/tmp/member_votes_%s.arff" % member_id)
+
+  return HttpResponse("tree 1,2,3")
+
+def ArffGenerateForMember(request, member_id):
+  self.MemberArffGenerate(member_id, "/tmp/member_votes_%s.arff" % member_id)
+  return HttpResponse("File ready")
+
+def ArffDownloadForMember(request, member_id):
+  content = open("/tmp/member_votes_%s.arff" % member_id, "r").read()
+  response = HttpResponse(content, mimetype='application/octet-stream')
+  response['Content-Disposition'] = "attachment; filename=member_votes_%s.arff" % member_id
+  return response
+
+
+
+def PartyArffGenerate(party_id, filename):
   party = get_object_or_404(Party, pk=party_id)
 
   feature_extractor = PartyBillsFeatureExtractor()
@@ -69,8 +83,8 @@ def FeatureDownloadForParty(request, party_id):
   bills = [bill for bill in Bill.objects.all() if bill.vote_set.all()]
 
   # Build bag of words
-  # with Process('Building bag of words for party %s' % party.id):
-  #   bag_of_words = Build(party=party)
+  with Process('Building bag of words for party %s' % party.id):
+    bag_of_words = Build(party=party)
 
   # Build features
   with Process('Building features for party %s (%s bills)' % (party.id, len(bills))):
@@ -101,7 +115,19 @@ def FeatureDownloadForParty(request, party_id):
     for value in values:
       content += ','.join([','.join([str(v) for v in value[0]]), value[1]]) + '\n'
 
+  open(filename, "w").write(content)
+
+def FeatureDownloadForParty(request, party_id):
+  self.PartyArffGenerate(party_id, "/tmp/party_votes_%s.arff" % party_id)
+
   return HttpResponse("tree 1,2,3")
-  # response = HttpResponse(content, mimetype='application/octet-stream')
-  # response['Content-Disposition'] = "attachment; filename=party_votes_%s.arff" % party.id
-  # return response
+
+def ArffGenerateForParty(request, party_id):
+  self.PartyArffGenerate(party_id, "/tmp/party_votes_%s.arff" % party_id)
+  return HttpResponse("File ready")
+
+def ArffDownloadForParty(request, party_id):
+  content = open("/tmp/party_votes_%s.arff" % party_id, "r").read()
+  response = HttpResponse(content, mimetype='application/octet-stream')
+  response['Content-Disposition'] = "attachment; filename=party_votes_%s.arff" % party_id
+  return response
