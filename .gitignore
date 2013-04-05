@@ -1,6 +1,8 @@
 *.py[cod]
-db.sqlite
+db.sqlite*
+.DS_Store
 */.DS_Store
+weka/Downloads
 
 # C extensions
 *.so
