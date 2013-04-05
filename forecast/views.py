@@ -20,13 +20,11 @@ def FeatureDownloadForMember(request, member_id):
   feature_extractor = MemberBillsFeatureExtractor()
   class_values = sorted(['FOR', 'AGAINST', 'ABSTAIN', 'NO_SHOW'])
 
-  # votes = Vote.objects.filter(votememberdecision__member_id=member.id)
-  # bills = Bill.objects.filter(vote__id__in=[vote.id for vote in votes])
   bills = [bill for bill in Bill.objects.all() if bill.vote_set.all()]
 
   # Build bag of words
-  with Process('Building bag of words for member %s' % member.id):
-    bag_of_words = Build(member=member)
+  # with Process('Building bag of words for member %s' % member.id):
+  #   bag_of_words = Build(member=member)
 
   # Build features
   with Process('Building features for member %s (%s bills)' % (member.id, len(bills))):
@@ -67,15 +65,11 @@ def FeatureDownloadForParty(request, party_id):
   feature_extractor = PartyBillsFeatureExtractor()
   class_values = sorted(['FOR', 'AGAINST', 'ABSTAIN', 'NO_SHOW'])
 
-  # votes = set()
-  # for member in party.member_set.all():
-  #   votes = votes.union(Vote.objects.filter(votememberdecision__member_id=member.id))
-  # bills = Bill.objects.filter(vote__id__in=[vote.id for vote in votes])
   bills = [bill for bill in Bill.objects.all() if bill.vote_set.all()]
 
   # Build bag of words
-  with Process('Building bag of words for party %s' % party.id):
-    bag_of_words = Build(party=party)
+  # with Process('Building bag of words for party %s' % party.id):
+  #   bag_of_words = Build(party=party)
 
   # Build features
   with Process('Building features for party %s (%s bills)' % (party.id, len(bills))):
