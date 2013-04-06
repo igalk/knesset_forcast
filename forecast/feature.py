@@ -108,9 +108,11 @@ class BillSupportingAgendaFeature(FeatureSet):
       self.agenda_votes = set(agenda.votes.all())
 
     def Extract(self, member, bill):
-      num_bill_agendas = sum([len(VoteAgenda.objects.filter(vote_id__exact=vote.id))
-                              for vote in bill.vote_set.all()])
-      if num_bill_agendas == 0:
+      if "num_agendas" not in bill.__dict__:
+        bill.num_agendas = sum(
+            [len(VoteAgenda.objects.filter(vote_id__exact=vote.id))
+             for vote in bill.vote_set.all()])
+      if bill.num_agendas == 0:
         return '?'
 
       related = set(bill.vote_set.all()).intersection(self.agenda_votes)
@@ -140,6 +142,13 @@ class BillHasTagFeature(FeatureSet):
       self.tag = tag
 
     def Extract(self, member, bill):
+      if "num_tags" not in bill.__dict__:
+        bill.num_tags = sum(
+            [len(BillTag.objects.filter(bill_id__exact=bill.id))
+             for vote in bill.vote_set.all()])
+      if bill.num_tags == 0:
+        return '?'
+
       bill_tag = BillTag.objects.filter(tag_id__exact=self.tag.id, bill_id__exact=bill.id)
       if bill_tag:
         return '1'
