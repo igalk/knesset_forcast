@@ -83,9 +83,9 @@ class BillHasKeyWords(Feature):
   def LegalValues(self):
     return ['FOR', 'AGAINST', 'ABSTAIN', 'NONE']
 
-def MemberBillsFeatures():#bag_of_words):
-  # if not bag_of_words:
-  #   raise Exception("Bag of words can't be None")
+def MemberBillsFeatures(bag_of_words):
+  if not bag_of_words:
+    raise Exception("Bag of words can't be None")
   return [MemberProposedBillFeature(), # Feature 1
           MemberSupportedBillFeature(), # Feature 2
           MemberInBillProposingPartyFeature(), # Feature 3
@@ -97,7 +97,7 @@ def MemberBillsFeatures():#bag_of_words):
           BillSupportingPartyInOppositionFeature(), # Feature 4 @feature.py
           BillSupportingAgendaFeature(), # Feature 5 @feature.py
           BillHasTagFeature(), # Feature 6 @feature.py
-          # BillHasKeyWords(bag_of_words), # Feature 6
+          BillHasKeyWords(bag_of_words), # Feature 6
          ]
 
 class MemberBillsFeatureExtractor:
