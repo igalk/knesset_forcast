@@ -233,30 +233,40 @@ def CompareAllParties(request):
   parties = Party.objects.all()
   p.WriteProgress("Compile bag of words", 0, 1)
   p.WriteProgress("Extract features", 0, 1)
-  for conf in WekaRunner.CONFIGS:
-    p.WriteProgress("Run %s" % conf, 0, 1)
+  for conf_id in WekaRunner.CONFIGS:
+    p.WriteProgress("Run %s" % conf_id, 0, 1)
   for i, party in enumerate(parties):
     p.WriteProgress("Party %d/%d" % (i+1, len(parties)), 0, 1)
 
+  results = TestResults()
+  weka_runner = WekaRunner()
   for i, party in enumerate(parties):
     p.WriteProgress("Party %d/%d" % (i+1, len(parties)), 1, 1)
 
     p.WriteProgress("Compile bag of words", 0, 1)
     p.WriteProgress("Extract features", 0, 1)
-    for conf in WekaRunner.CONFIGS:
-      p.WriteProgress("Run %s" % conf, 0, 1)
+    for conf_id in WekaRunner.CONFIGS:
+      p.WriteProgress("Run %s" % conf_id, 0, 1)
 
     arff_input = config.PartyPath(party.id)
     PartyArffGenerate(party.id, arff_input, p)
 
-    for conf in WekaRunner.CONFIGS:
-      p.WriteProgress("Run %s" % conf, 1, 1)
-      weka_runner = WekaRunner()
-      weka_output = weka_runner.run(WekaRunner.CONFIGS[conf], arff_input).raw_output
-      p.WriteProgress("Run %s" % conf, 1, 1, True)
+    for conf_id, conf in WekaRunner.CONFIGS.items():
+      for j, split_percent in enumerate(WekaRunner.ALL_SPLITS):
+        weka_output = weka_runner.run(conf, arff_input, split_percent)
+        if weka_output.error:
+          print "*"*40
+          print "Weka Error"
+          print weka_output.raw_output
+          print "*"*40
+        else:
+          results.addResult(party.id, conf, split_percent, [1]*4, 1, weka_output)
+        p.WriteProgress("Run %s" % conf_id, j+1, len(WekaRunner.ALL_SPLITS))
+      p.WriteProgress("Run %s" % conf_id, 1, 1, True)
 
     p.WriteProgress("Party %d/%d" % (i+1, len(parties)), 1, 1, True)
 
+  results.exportCSV("/tmp/party.csv")
   return HttpResponse("DONE")
 
 def ArffGenerateForParty(request, party_id):
@@ -274,7 +284,7 @@ def ArffDownloadForParty(request, party_id):
   return response
 
 def DownloadAllPartiesComparison(request):
-  content = "fake"
+  content = open("/tmp/party.csv", "r").read()
   response = HttpResponse(content, mimetype='application/octet-stream')
   response['Content-Disposition'] = "attachment; filename=party_votes.csv"
   return response
