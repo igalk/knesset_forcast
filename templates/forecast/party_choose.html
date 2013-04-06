@@ -53,7 +53,7 @@ function showLive(party_id) {
   $.get("/forecast/party/" + party_id, function(data) {
     window.clearInterval(interval);
     interval = null;
-    $("#modalBody").html(data);
+    $("#modalBody").html("<font face=\"courier new\">" + data + "</font>");
   });
   if (interval != null) window.clearInterval(interval);
   interval = window.setInterval(function() { showProgress(null); }, 1000); 
