@@ -67,7 +67,7 @@ def FeatureDownloadForMember(request, member_id):
   weka_runner = WekaRunner()
   weka_output = weka_runner.run(WekaRunner.J48, arff_input)
 
-  weka_output = cgi.escape(weka_output.replace("\n", "<br/>"))
+  weka_output = cgi.escape(weka_output).replace("\n", "<br/>").replace("\t", "&emsp;")
   return HttpResponse(weka_output)
 
 def ArffGenerateForMember(request, member_id):
@@ -132,7 +132,7 @@ def FeatureDownloadForParty(request, party_id):
   weka_runner = WekaRunner()
   weka_output = weka_runner.run(WekaRunner.J48, arff_input)
 
-  weka_output = cgi.escape(weka_output).replace("\n", "<br/>")
+  weka_output = cgi.escape(weka_output).replace("\n", "<br/>").replace("\t", "&emsp;")
   return HttpResponse(weka_output)
 
 def ArffGenerateForParty(request, party_id):
