@@ -17,7 +17,7 @@ from search.words.bag_of_words import Build
 from process import Process
 
 def EscapeString(s):
-  return cgi.escape(weka_output).replace("\n", "<br/>").replace("\t", "&emsp;").replace(" ", "&nbsp;")
+  return cgi.escape(s).replace("\n", "<br/>").replace("\t", "&emsp;").replace(" ", "&nbsp;")
 
 def FetchAllData(request):
   DataPopulator().PopulateAllData()
@@ -90,7 +90,7 @@ def FeatureDownloadForMember(request, member_id):
 
   p.WriteProgress("Run J48", 1, 1)
   weka_runner = WekaRunner()
-  weka_output = weka_runner.run(WekaRunner.CONFIGS["J48"], arff_input).raw_output
+  weka_output = weka_runner.run(WekaRunner.CONFIGS["J48-0.25"], arff_input).raw_output
   p.WriteProgress("Run J48", 1, 1, True)
 
   weka_output = EscapeString(weka_output)
@@ -209,7 +209,7 @@ def FeatureDownloadForParty(request, party_id):
 
   p.WriteProgress("Run J48", 1, 1)
   weka_runner = WekaRunner()
-  weka_output = weka_runner.run(WekaRunner.CONFIGS["J48"], arff_input).raw_output
+  weka_output = weka_runner.run(WekaRunner.CONFIGS["J48-0.25"], arff_input).raw_output
   p.WriteProgress("Run J48", 1, 1, True)
 
   weka_output = EscapeString(weka_output)
