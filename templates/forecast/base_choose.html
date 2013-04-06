@@ -1,0 +1,87 @@
+{% extends "base_with_tables.html" %}
+
+{% block scripts %}
+<script>
+function makeProgress(progress) {
+  var p = "";
+  p += "<div class=\"row\">";
+  p +=   "<div class=\"span2\">" + progress.name + "</div>";
+  p +=   "<div class=\"span4\">";
+  p +=     "<div class=\"progress " + (progress.done ? "" : "progress-striped active") + "\">";
+  p +=       "<div class=\"bar\" style=\"width: " + progress.progress + "%;\"></div>";
+  p +=     "</div>";
+  p +=   "</div>";
+  p += "</div>";
+  return p;
+}
+
+function showProgress(f) {
+  $.get("/forecast/progress", function(data) {
+    var progresses = JSON.parse(data);
+    var all = "";
+    $.each(progresses, function(i) {
+      all += makeProgress(progresses[i]);
+    });
+    $("#modalBody").html(all);
+    if (f != null) {
+      f();
+    }
+  });
+}
+
+function showModal(name, id, entity) {
+  $("#modalHeader").html("Learning " + name + "'s secrets");
+  $("#downloadLink")[0].setAttribute("href", "javascript:downloadArff(" + id + ", \"" + entity + "\")");
+  $("#downloadLink")[0].setAttribute("class", "btn");
+  $("#downloadLink").html("Download arff");
+  $("#showLive")[0].setAttribute("href", "javascript:showLive(" + id + ", \"" + entity + "\")");
+  $("#modalBody").html("");
+  $("#pageModal").modal();
+}
+
+function showLive(id, entity) {
+  $.get("/forecast/" + entity + "/" + id, function(data) {
+    window.clearInterval(interval);
+    interval = null;
+    $("#modalBody").html("<font face=\"courier new\">" + data + "</font>");
+  });
+  if (interval != null) window.clearInterval(interval);
+  interval = window.setInterval(function() { showProgress(null); }, 1000);
+}
+
+function showModalAll(entity) {
+  $("#modalHeader").html("Learning all " + entity + " secrets");
+  $("#downloadLink")[0].removeAttribute("href");
+  $("#downloadLink")[0].removeAttribute("class");
+  $("#downloadLink").html("");
+  $("#showLive")[0].setAttribute("href", "javascript:showLiveAll(\"" + entity + "\")");
+  $("#modalBody").html("");
+  $("#pageModal").modal();
+}
+
+var interval = null;
+function downloadArff(id, entity) {
+  $.get("/forecast/" + entity + "/" + id + "/arff", function(data) {
+    window.clearInterval(interval);
+    interval = null;
+    showProgress(function() {
+      window.location = "/forecast/" + entity + "/" + id + "/arff/download";
+    });
+  });
+  if (interval != null) window.clearInterval(interval);
+  interval = window.setInterval(function() { showProgress(null); }, 1000);
+}
+
+function showLiveAll(entity) {
+  $.get("/forecast/" + entity + "/all", function(data) {
+    window.clearInterval(interval);
+    interval = null;
+    showProgress(function() {
+      window.location = "/forecast/" + entity + "/all/download";
+    });
+  });
+  if (interval != null) window.clearInterval(interval);
+  interval = window.setInterval(function() { showProgress(null); }, 1000);
+}
+</script>
+{% endblock %}
