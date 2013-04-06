@@ -1,4 +1,6 @@
 import cgi
+import config
+import os
 
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect, HttpResponse
@@ -29,6 +31,10 @@ def ReportProgress(request):
 
 def MemberArffGenerate(member_id, filename, progress):
   member = get_object_or_404(Member, pk=member_id)
+  if config.CACHE and os.path.exists(filename):
+    progress.WriteProgress("Compile bag of words", 1, 1, True)
+    progress.WriteProgress("Extract features", 1, 1, True)
+    return
   
   feature_extractor = MemberBillsFeatureExtractor(progress)
   class_values = sorted(['FOR', 'AGAINST', 'ABSTAIN', 'NO_SHOW'])
@@ -71,7 +77,7 @@ def MemberArffGenerate(member_id, filename, progress):
   open(filename, "w").write(content)
 
 def FeatureDownloadForMember(request, member_id):
-  arff_input = "/tmp/member_votes_%s.arff" % member_id
+  arff_input = config.MemberPath(member_id)
   p = Progress()
   p.Reset()
   p.WriteProgress("Compile bag of words", 0, 1)
@@ -92,11 +98,11 @@ def ArffGenerateForMember(request, member_id):
   p.Reset()
   p.WriteProgress("Compile bag of words", 0, 1)
   p.WriteProgress("Extract features", 0, 1)
-  MemberArffGenerate(member_id, "/tmp/member_votes_%s.arff" % member_id, p)
+  MemberArffGenerate(member_id, config.MemberPath(member_id), p)
   return HttpResponse("File ready")
 
 def ArffDownloadForMember(request, member_id):
-  content = open("/tmp/member_votes_%s.arff" % member_id, "r").read()
+  content = open(config.MemberPath(member_id), "r").read()
   response = HttpResponse(content, mimetype='application/octet-stream')
   response['Content-Disposition'] = "attachment; filename=member_votes_%s.arff" % member_id
   return response
@@ -105,6 +111,11 @@ def ArffDownloadForMember(request, member_id):
 
 def PartyArffGenerate(party_id, filename, progress):
   party = get_object_or_404(Party, pk=party_id)
+  if config.CACHE and os.path.exists(filename):
+    progress.WriteProgress("Compile bag of words", 1, 1, True)
+    progress.WriteProgress("Extract features", 1, 1, True)
+    return
+
 
   feature_extractor = PartyBillsFeatureExtractor(progress)
   class_values = sorted(['FOR', 'AGAINST', 'ABSTAIN', 'NO_SHOW'])
@@ -147,7 +158,7 @@ def PartyArffGenerate(party_id, filename, progress):
   open(filename, "w").write(content)
 
 def FeatureDownloadForParty(request, party_id):
-  arff_input = "/tmp/party_votes_%s.arff" % party_id
+  arff_input = config.PartyPath(party_id)
   p = Progress()
   p.Reset()
   p.WriteProgress("Compile bag of words", 0, 1)
@@ -168,11 +179,11 @@ def ArffGenerateForParty(request, party_id):
   p.Reset()
   p.WriteProgress("Compile bag of words", 0, 1)
   p.WriteProgress("Extract features", 0, 1)
-  PartyArffGenerate(party_id, "/tmp/party_votes_%s.arff" % party_id, p)
+  PartyArffGenerate(party_id, config.PartyPath(party_id), p)
   return HttpResponse("File ready")
 
 def ArffDownloadForParty(request, party_id):
-  content = open("/tmp/party_votes_%s.arff" % party_id, "r").read()
+  content = open(config.PartyPath(party_id), "r").read()
   response = HttpResponse(content, mimetype='application/octet-stream')
   response['Content-Disposition'] = "attachment; filename=party_votes_%s.arff" % party_id
   return response
