@@ -96,6 +96,39 @@ def FeatureDownloadForMember(request, member_id):
   weka_output = EscapeString(weka_output)
   return HttpResponse(weka_output)
 
+def CompareAllMembers(request):
+  p = Progress()
+  p.Reset()
+
+  members = Member.objects.all()
+  p.WriteProgress("Compile bag of words", 0, 1)
+  p.WriteProgress("Extract features", 0, 1)
+  for conf in WekaRunner.CONFIGS:
+    p.WriteProgress("Run %s" % conf, 0, 1)
+  for i, member in enumerate(members):
+    p.WriteProgress("Member %d/%d" % (i+1, len(members)), 0, 1)
+
+  for i, member in enumerate(members):
+    p.WriteProgress("Member %d/%d" % (i+1, len(members)), 1, 1)
+
+    p.WriteProgress("Compile bag of words", 0, 1)
+    p.WriteProgress("Extract features", 0, 1)
+    for conf in WekaRunner.CONFIGS:
+      p.WriteProgress("Run %s" % conf, 0, 1)
+
+    arff_input = config.MemberPath(member.id)
+    MemberArffGenerate(member.id, arff_input, p)
+
+    for conf in WekaRunner.CONFIGS:
+      p.WriteProgress("Run %s" % conf, 1, 1)
+      weka_runner = WekaRunner()
+      weka_output = weka_runner.run(WekaRunner.CONFIGS[conf], arff_input).raw_output
+      p.WriteProgress("Run %s" % conf, 1, 1, True)
+
+    p.WriteProgress("Member %d/%d" % (i+1, len(members)), 1, 1, True)
+
+  return HttpResponse("DONE")
+
 def ArffGenerateForMember(request, member_id):
   p = Progress()
   p.Reset()
@@ -110,6 +143,11 @@ def ArffDownloadForMember(request, member_id):
   response['Content-Disposition'] = "attachment; filename=member_votes_%s.arff" % member_id
   return response
 
+def DownloadAllMembersComparison(request):
+  content = "fake"
+  response = HttpResponse(content, mimetype='application/octet-stream')
+  response['Content-Disposition'] = "attachment; filename=member_votes.csv"
+  return response
 
 
 def PartyArffGenerate(party_id, filename, progress):
