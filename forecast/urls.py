@@ -4,6 +4,7 @@ from forecast.models import Member, Party
 
 urlpatterns = patterns('',
     url(r'^fetch/$', 'forecast.views.FetchAllData'),
+    url(r'^progress$', 'forecast.views.ReportProgress'),
     url(r'^member/$',
         ListView.as_view(
           queryset=Member.objects.all(),

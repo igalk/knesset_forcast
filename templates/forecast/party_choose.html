@@ -9,17 +9,54 @@ function showModal(party_name, party_id) {
   $("#pageModal").modal();
 }
 
+function makeProgress(progress) {
+  var p = "";
+  p += "<div class=\"row\">";
+  p +=   "<div class=\"span2\">" + progress.name + "</div>";
+  p +=   "<div class=\"span4\">";
+  p +=     "<div class=\"progress " + (progress.done ? "" : "progress-striped active") + "\">";
+  p +=       "<div class=\"bar\" style=\"width: " + progress.progress + "%;\"></div>";
+  p +=     "</div>";
+  p +=   "</div>";
+  p += "</div>";
+  return p;
+}
+
+function showProgress(f) {
+  $.get("/forecast/progress", function(data) {
+    var progresses = JSON.parse(data);
+    var all = "";
+    $.each(progresses, function(i) {
+      all += makeProgress(progresses[i]);
+    });
+    $("#modalBody").html(all);
+    if (f != null) {
+      f();
+    }
+  });
+}
+
+var interval = null;
 function downloadArff(party_id) {
   $.get("/forecast/party/" + party_id + "/arff", function(data) {
-    window.location = "/forecast/party/" + party_id + "/arff/download";
-  });  
+    window.clearInterval(interval);
+    interval = null;
+    showProgress(function() {
+      window.location = "/forecast/party/" + party_id + "/arff/download";
+    });
+  });
+  if (interval != null) window.clearInterval(interval);
+  interval = window.setInterval(function() { showProgress(null); }, 1000);
 }
 
 function showLive(party_id) {
   $.get("/forecast/party/" + party_id, function(data) {
+    window.clearInterval(interval);
+    interval = null;
     $("#modalBody").html(data);
-    $("#pageModal").modal();
-  });  
+  });
+  if (interval != null) window.clearInterval(interval);
+  interval = window.setInterval(function() { showProgress(null); }, 1000); 
 }
 </script>
 {% endblock %}

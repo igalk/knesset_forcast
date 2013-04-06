@@ -97,13 +97,17 @@ def MemberBillsFeatures(bag_of_words):
           BillSupportingPartyInOppositionFeature(), # Feature 4 @feature.py
           BillSupportingAgendaFeature(), # Feature 5 @feature.py
           BillHasTagFeature(), # Feature 6 @feature.py
-          # BillHasKeyWords(bag_of_words), # Feature 6
+          BillHasKeyWords(bag_of_words), # Feature 6
          ]
 
 class MemberBillsFeatureExtractor:
+  def __init__(self, progress):
+    self.progress = progress
+
   def Extract(self, member, bills, features):
     feature_values = {}
-    for bill in bills:
+    for i, bill in enumerate(bills):
+      self.progress.WriteProgress("Extract features", i, len(bills))
       values = []
       for feature in features:
         if isinstance(feature, FeatureSet):
@@ -114,4 +118,5 @@ class MemberBillsFeatureExtractor:
       bill_date = max([vote.time for vote in bill.vote_set.all()])
       feature_values[bill.id] = tuple((tuple(values), classification, bill_date))
 
+    self.progress.WriteProgress("Extract features", len(bills), len(bills), True)
     return feature_values
