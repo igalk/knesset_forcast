@@ -215,6 +215,39 @@ def FeatureDownloadForParty(request, party_id):
   weka_output = EscapeString(weka_output)
   return HttpResponse(weka_output)
 
+def CompareAllParties(request):
+  p = Progress()
+  p.Reset()
+
+  parties = Party.objects.all()
+  p.WriteProgress("Compile bag of words", 0, 1)
+  p.WriteProgress("Extract features", 0, 1)
+  for conf in WekaRunner.CONFIGS:
+    p.WriteProgress("Run %s" % conf, 0, 1)
+  for i, party in enumerate(parties):
+    p.WriteProgress("Party %d/%d" % (i+1, len(parties)), 0, 1)
+
+  for i, party in enumerate(parties):
+    p.WriteProgress("Party %d/%d" % (i+1, len(parties)), 1, 1)
+
+    p.WriteProgress("Compile bag of words", 0, 1)
+    p.WriteProgress("Extract features", 0, 1)
+    for conf in WekaRunner.CONFIGS:
+      p.WriteProgress("Run %s" % conf, 0, 1)
+
+    arff_input = config.PartyPath(party.id)
+    PartyArffGenerate(party.id, arff_input, p)
+
+    for conf in WekaRunner.CONFIGS:
+      p.WriteProgress("Run %s" % conf, 1, 1)
+      weka_runner = WekaRunner()
+      weka_output = weka_runner.run(WekaRunner.CONFIGS[conf], arff_input).raw_output
+      p.WriteProgress("Run %s" % conf, 1, 1, True)
+
+    p.WriteProgress("Party %d/%d" % (i+1, len(parties)), 1, 1, True)
+
+  return HttpResponse("DONE")
+
 def ArffGenerateForParty(request, party_id):
   p = Progress()
   p.Reset()
@@ -227,4 +260,10 @@ def ArffDownloadForParty(request, party_id):
   content = open(config.PartyPath(party_id), "r").read()
   response = HttpResponse(content, mimetype='application/octet-stream')
   response['Content-Disposition'] = "attachment; filename=party_votes_%s.arff" % party_id
+  return response
+
+def DownloadAllPartiesComparison(request):
+  content = "fake"
+  response = HttpResponse(content, mimetype='application/octet-stream')
+  response['Content-Disposition'] = "attachment; filename=party_votes.csv"
   return response
