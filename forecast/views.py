@@ -30,7 +30,6 @@ def ReportProgress(request):
 def MemberArffGenerate(member_id, filename, progress):
   member = get_object_or_404(Member, pk=member_id)
   
-  progress.Reset()
   feature_extractor = MemberBillsFeatureExtractor(progress)
   class_values = sorted(['FOR', 'AGAINST', 'ABSTAIN', 'NO_SHOW'])
 
@@ -74,18 +73,24 @@ def MemberArffGenerate(member_id, filename, progress):
 def FeatureDownloadForMember(request, member_id):
   arff_input = "/tmp/member_votes_%s.arff" % member_id
   p = Progress()
+  p.Reset()
+  p.WriteProgress("Extract features", 0, 1)
+  p.WriteProgress("Run J48", 0, 1)
   MemberArffGenerate(member_id, arff_input, p)
 
-  p.WriteProgress("Running J48", 1, 1)
+  p.WriteProgress("Run J48", 1, 1)
   weka_runner = WekaRunner()
   weka_output = weka_runner.run(WekaRunner.J48, arff_input)
-  p.WriteProgress("Running J48", 1, 1, True)
+  p.WriteProgress("Run J48", 1, 1, True)
 
   weka_output = cgi.escape(weka_output).replace("\n", "<br/>").replace("\t", "&emsp;")
   return HttpResponse(weka_output)
 
 def ArffGenerateForMember(request, member_id):
-  MemberArffGenerate(member_id, "/tmp/member_votes_%s.arff" % member_id, Progress())
+  p = Progress()
+  p.Reset()
+  p.WriteProgress("Extract features", 0, 1)
+  MemberArffGenerate(member_id, "/tmp/member_votes_%s.arff" % member_id, p)
   return HttpResponse("File ready")
 
 def ArffDownloadForMember(request, member_id):
@@ -99,7 +104,6 @@ def ArffDownloadForMember(request, member_id):
 def PartyArffGenerate(party_id, filename, progress):
   party = get_object_or_404(Party, pk=party_id)
 
-  progress.Reset()
   feature_extractor = PartyBillsFeatureExtractor(progress)
   class_values = sorted(['FOR', 'AGAINST', 'ABSTAIN', 'NO_SHOW'])
 
@@ -143,18 +147,24 @@ def PartyArffGenerate(party_id, filename, progress):
 def FeatureDownloadForParty(request, party_id):
   arff_input = "/tmp/party_votes_%s.arff" % party_id
   p = Progress()
+  p.Reset()
+  p.WriteProgress("Extract features", 0, 1)
+  p.WriteProgress("Run J48", 0, 1)
   PartyArffGenerate(party_id, arff_input, p)
 
-  p.WriteProgress("Running J48", 1, 1)
+  p.WriteProgress("Run J48", 1, 1)
   weka_runner = WekaRunner()
   weka_output = weka_runner.run(WekaRunner.J48, arff_input)
-  p.WriteProgress("Running J48", 1, 1, True)
+  p.WriteProgress("Run J48", 1, 1, True)
 
   weka_output = cgi.escape(weka_output).replace("\n", "<br/>").replace("\t", "&emsp;")
   return HttpResponse(weka_output)
 
 def ArffGenerateForParty(request, party_id):
-  PartyArffGenerate(party_id, "/tmp/party_votes_%s.arff" % party_id, Progress())
+  p = Progress()
+  p.Reset()
+  p.WriteProgress("Extract features", 0, 1)
+  PartyArffGenerate(party_id, "/tmp/party_votes_%s.arff" % party_id, p)
   return HttpResponse("File ready")
 
 def ArffDownloadForParty(request, party_id):
