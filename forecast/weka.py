@@ -24,11 +24,12 @@ class WekaRunner:
 
     class Output:
         
-        def __init__(self, raw_output, correct_percent, confusion_matrix, classifier):
+        def __init__(self, raw_output, correct_percent, confusion_matrix, classifier, error):
             self.raw_output = raw_output
             self.correct_percent = correct_percent
             self.confusion_matrix = confusion_matrix
             self.classifier = classifier
+            self.error = error
 
     class ClassifierConfig:
 
@@ -38,7 +39,9 @@ class WekaRunner:
             self.classifier_flags = classifier_flags
 
     CONFIGS = {
-        "J48": ClassifierConfig("J48", "trees.J48", "-C 0.25 -M 2"),
+        "J48-0.25": ClassifierConfig("J48-0.25", "trees.J48", "-C 0.25 -M 2"),
+        "J48-0.5" : ClassifierConfig("J48-0.5" , "trees.J48", "-C 0.5 -M 2"),
+        "J48-0.75": ClassifierConfig("J48-0.75", "trees.J48", "-C 0.75 -M 2"),
     }
 
     def run(self, classifier_config, input_file, split_percent=DEFAULT_SPLIT_PERCENT,
@@ -70,18 +73,28 @@ class WekaRunner:
         return output
 
     def _parseOutput(self, output_str, classifier_config):
-        # Split the output into sections to process.
         raw_str = output_str
-        classifier_section, output_str = output_str.split("=== Error on test split ===")
-        error_section, confusion_section = output_str.split("=== Confusion Matrix ===")
 
-        # Process the classifier section.
-        classifier_section = classifier_section.strip()
+        try:
+            # Split the output into sections to process.
+            classifier_section, output_str = output_str.split("=== Error on test split ===")
+            error_section, confusion_section = output_str.split("=== Confusion Matrix ===")
 
-        # Process the error section.
-        correct_percent = float(error_section.strip().split("%")[0].strip().split()[-1])
+            # Process the classifier section.
+            classifier_section = classifier_section.strip()
 
-        # Process the confusion section.
-        confusion_matrix = confusion_section.strip()
+            # Process the error section.
+            correct_percent = float(error_section.strip().split("%")[0].strip().split()[-1])
 
-        return self.Output(raw_str, correct_percent, confusion_matrix, classifier_section)
+            # Process the confusion section.
+            confusion_matrix = confusion_section.strip()
+
+            error = False
+        except:
+            classifier_section = ""
+            confusion_matrix = ""
+            correct_percent = -1.0
+            error = True
+
+        return self.Output(raw_str, correct_percent, confusion_matrix,
+                           classifier_section, error)
