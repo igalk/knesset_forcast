@@ -43,6 +43,7 @@ class WekaRunner:
         "J48-0.5" : ClassifierConfig("J48-0.5" , "trees.J48", "-C 0.5 -M 2"),
         "J48-0.75": ClassifierConfig("J48-0.75", "trees.J48", "-C 0.75 -M 2"),
     }
+    ALL_SPLITS = [66, 70, 75, 80, 85, 90, 95]
 
     def run(self, classifier_config, input_file, split_percent=DEFAULT_SPLIT_PERCENT,
             features_to_ignore=None):
