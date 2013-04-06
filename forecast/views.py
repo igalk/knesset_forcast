@@ -36,12 +36,12 @@ def MemberArffGenerate(member_id, filename, progress):
   bills = [bill for bill in Bill.objects.all() if bill.vote_set.all()]
 
   # Build bag of words
-  # with Process('Building bag of words for member %s' % member.id):
-  #   bag_of_words = Build(member=member)
+  with Process('Building bag of words for member %s' % member.id):
+    bag_of_words = Build(member=member, cutoff=0.65, progress=progress)
 
   # Build features
   with Process('Building features for member %s (%s bills)' % (member.id, len(bills))):
-    features = MemberBillsFeatures()#bag_of_words)
+    features = MemberBillsFeatures(bag_of_words)
 
     extracted = feature_extractor.Extract(member, bills, features)
     feature_values = [sorted(feature.LegalValues()) for feature in features]
@@ -74,6 +74,7 @@ def FeatureDownloadForMember(request, member_id):
   arff_input = "/tmp/member_votes_%s.arff" % member_id
   p = Progress()
   p.Reset()
+  p.WriteProgress("Compile bag of words", 0, 1)
   p.WriteProgress("Extract features", 0, 1)
   p.WriteProgress("Run J48", 0, 1)
   MemberArffGenerate(member_id, arff_input, p)
@@ -89,6 +90,7 @@ def FeatureDownloadForMember(request, member_id):
 def ArffGenerateForMember(request, member_id):
   p = Progress()
   p.Reset()
+  p.WriteProgress("Compile bag of words", 0, 1)
   p.WriteProgress("Extract features", 0, 1)
   MemberArffGenerate(member_id, "/tmp/member_votes_%s.arff" % member_id, p)
   return HttpResponse("File ready")
@@ -110,12 +112,12 @@ def PartyArffGenerate(party_id, filename, progress):
   bills = [bill for bill in Bill.objects.all() if bill.vote_set.all()]
 
   # Build bag of words
-  # with Process('Building bag of words for party %s' % party.id):
-  #   bag_of_words = Build(party=party)
+  with Process('Building bag of words for party %s' % party.id):
+    bag_of_words = Build(party=party, cutoff=0.65, progress=progress)
 
   # Build features
   with Process('Building features for party %s (%s bills)' % (party.id, len(bills))):
-    features = PartyBillsFeatures() #bag_of_words)
+    features = PartyBillsFeatures(bag_of_words)
 
     extracted = feature_extractor.Extract(party, bills, features)
     feature_values = [sorted(feature.LegalValues()) for feature in features]
@@ -148,6 +150,7 @@ def FeatureDownloadForParty(request, party_id):
   arff_input = "/tmp/party_votes_%s.arff" % party_id
   p = Progress()
   p.Reset()
+  p.WriteProgress("Compile bag of words", 0, 1)
   p.WriteProgress("Extract features", 0, 1)
   p.WriteProgress("Run J48", 0, 1)
   PartyArffGenerate(party_id, arff_input, p)
@@ -163,6 +166,7 @@ def FeatureDownloadForParty(request, party_id):
 def ArffGenerateForParty(request, party_id):
   p = Progress()
   p.Reset()
+  p.WriteProgress("Compile bag of words", 0, 1)
   p.WriteProgress("Extract features", 0, 1)
   PartyArffGenerate(party_id, "/tmp/party_votes_%s.arff" % party_id, p)
   return HttpResponse("File ready")

@@ -40,18 +40,22 @@ var interval = null;
 function downloadArff(member_id) {
   $.get("/forecast/member/" + member_id + "/arff", function(data) {
     window.clearInterval(interval);
+    interval = null;
     showProgress(function() {
       window.location = "/forecast/member/" + member_id + "/arff/download";
     });
   });
+  if (interval != null) window.clearInterval(interval);
   interval = window.setInterval(function() { showProgress(null); }, 1000);
 }
 
 function showLive(member_id) {
   $.get("/forecast/member/" + member_id, function(data) {
     window.clearInterval(interval);
+    interval = null;
     $("#modalBody").html(data);
   });
+  if (interval != null) window.clearInterval(interval);
   interval = window.setInterval(function() { showProgress(null); }, 1000);
 }
 </script>
