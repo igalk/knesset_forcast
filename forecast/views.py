@@ -81,7 +81,7 @@ def FeatureDownloadForMember(request, member_id):
 
   p.WriteProgress("Run J48", 1, 1)
   weka_runner = WekaRunner()
-  weka_output = weka_runner.run(WekaRunner.J48, arff_input)
+  weka_output = weka_runner.run(WekaRunner.J48, arff_input).raw_output
   p.WriteProgress("Run J48", 1, 1, True)
 
   weka_output = cgi.escape(weka_output).replace("\n", "<br/>").replace("\t", "&emsp;")
@@ -157,7 +157,7 @@ def FeatureDownloadForParty(request, party_id):
 
   p.WriteProgress("Run J48", 1, 1)
   weka_runner = WekaRunner()
-  weka_output = weka_runner.run(WekaRunner.J48, arff_input)
+  weka_output = weka_runner.run(WekaRunner.J48, arff_input).raw_output
   p.WriteProgress("Run J48", 1, 1, True)
 
   weka_output = cgi.escape(weka_output).replace("\n", "<br/>").replace("\t", "&emsp;")
