@@ -36,4 +36,5 @@ class Progress:
     status = "%s\n%d|%d" % (name, current, total)
     if done:
       status += "\nDone"
-    open(PATH_LOCATION + str(index), "w").write(status)
+    f = '0'*(4-len(str(index))) + str(index)
+    open(PATH_LOCATION + f, "w").write(status)
