@@ -5,7 +5,20 @@
 function showModal(member_name, member_id) {
   $("#modalHeader").html("Learning " + member_name + "'s secrets");
   $("#downloadLink")[0].setAttribute("href", "javascript:downloadArff(" + member_id + ")");
+  $("#downloadLink")[0].setAttribute("class", "btn");
+  $("#downloadLink").html("Download arff");
   $("#showLive")[0].setAttribute("href", "javascript:showLive(" + member_id + ")");
+  $("#modalBody").html("");
+  $("#pageModal").modal();
+}
+
+function showModalAll() {
+  $("#modalHeader").html("Learning all member secrets");
+  $("#downloadLink")[0].removeAttribute("href");
+  $("#downloadLink")[0].removeAttribute("class");
+  $("#downloadLink").html("");
+  $("#showLive")[0].setAttribute("href", "javascript:showLiveAll()");
+  $("#modalBody").html("");
   $("#pageModal").modal();
 }
 
@@ -53,7 +66,19 @@ function showLive(member_id) {
   $.get("/forecast/member/" + member_id, function(data) {
     window.clearInterval(interval);
     interval = null;
-    $("#modalBody").html(data);
+    $("#modalBody").html("<font face=\"courier new\">" + data + "</font>");
+  });
+  if (interval != null) window.clearInterval(interval);
+  interval = window.setInterval(function() { showProgress(null); }, 1000);
+}
+
+function showLiveAll() {
+  $.get("/forecast/member/all", function(data) {
+    window.clearInterval(interval);
+    interval = null;
+    showProgress(function() {
+      window.location = "/forecast/member/all/download";
+    });
   });
   if (interval != null) window.clearInterval(interval);
   interval = window.setInterval(function() { showProgress(null); }, 1000);
@@ -70,6 +95,7 @@ function showLive(member_id) {
           <li><a>Choose member to get predictor</a></li>
         </ul>
         <ul class="nav pull-right" id="main-menu-right">
+          <li><a href="javascript:showModalAll()">Run all</a></li>
           <li><a href="/">Home</a></li>
         </ul>
       </div>
@@ -123,7 +149,7 @@ function showLive(member_id) {
     <div id="modalBody" class="modal-body">
     </div>
     <div class="modal-footer">
-      <a id="downloadLink" class="btn" aria-hidden="true">Download arff</a>
+      <a id="downloadLink" aria-hidden="true"></a>
       <a id="showLive" class="btn" aria-hidden="true">Show live</a>
       <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
     </div>
