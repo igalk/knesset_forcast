@@ -69,9 +69,9 @@ class BillHasKeyWords(Feature):
   def LegalValues(self):
     return ['FOR', 'AGAINST', 'ABSTAIN', 'NONE']
 
-def PartyBillsFeatures(bag_of_words):
-  if not bag_of_words:
-    raise Exception("Bag of words can't be None")
+def PartyBillsFeatures(): #bag_of_words):
+  # if not bag_of_words:
+  #   raise Exception("Bag of words can't be None")
   return [PartyMemberProposedBillFeature(), # Feature 1
           PartyMemberSupportedBillFeature(), # Feature 2
           PartyInCoalitionFeature(), # Feature 3
@@ -85,9 +85,15 @@ def PartyBillsFeatures(bag_of_words):
          ]
 
 class PartyBillsFeatureExtractor:
+  def __init__(self, progress):
+    self.progress = progress
+
   def Extract(self, party, bills, features):
     feature_values = {}
-    for bill in bills:
+    self.progress.WriteProgress("Extracting features", 0, len(bills))
+
+    for i, bill in enumerate(bills):
+      self.progress.WriteProgress("Extracting features", i, len(bills))
       values = []
       for feature in features:
         if isinstance(feature, FeatureSet):
@@ -98,4 +104,5 @@ class PartyBillsFeatureExtractor:
       bill_date = max([vote.time for vote in bill.vote_set.all()])
       feature_values[bill.id] = tuple((tuple(values), classification, bill_date))
 
+    self.progress.WriteProgress("Extracting features", len(bills), len(bills), True)
     return feature_values
