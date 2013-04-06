@@ -16,6 +16,9 @@ from forecast.progress import *
 from search.words.bag_of_words import Build
 from process import Process
 
+def EscapeString(s):
+  return cgi.escape(weka_output).replace("\n", "<br/>").replace("\t", "&emsp;").replace(" ", "&nbsp;")
+
 def FetchAllData(request):
   DataPopulator().PopulateAllData()
   return HttpResponseRedirect(reverse('members_choose'))
@@ -90,7 +93,7 @@ def FeatureDownloadForMember(request, member_id):
   weka_output = weka_runner.run(WekaRunner.CONFIGS["J48"], arff_input).raw_output
   p.WriteProgress("Run J48", 1, 1, True)
 
-  weka_output = cgi.escape(weka_output).replace("\n", "<br/>").replace("\t", "&emsp;")
+  weka_output = EscapeString(weka_output)
   return HttpResponse(weka_output)
 
 def ArffGenerateForMember(request, member_id):
@@ -171,7 +174,7 @@ def FeatureDownloadForParty(request, party_id):
   weka_output = weka_runner.run(WekaRunner.CONFIGS["J48"], arff_input).raw_output
   p.WriteProgress("Run J48", 1, 1, True)
 
-  weka_output = cgi.escape(weka_output).replace("\n", "<br/>").replace("\t", "&emsp;")
+  weka_output = EscapeString(weka_output)
   return HttpResponse(weka_output)
 
 def ArffGenerateForParty(request, party_id):
