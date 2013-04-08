@@ -126,7 +126,7 @@ def CompareAllMembers(request):
   for i, member in enumerate(members):
     p.WriteProgress("Member %d/%d" % (i+1, len(members)), 0, 1)
 
-  results = TestResults()
+  results = TestResults("/tmp/member.csv")
   weka_runner = WekaRunner()
   for i, member in enumerate(members):
     p.WriteProgress("Member %d/%d" % (i+1, len(members)), 1, 1)
@@ -169,7 +169,6 @@ def CompareAllMembers(request):
 
     p.WriteProgress("Member %d/%d" % (i+1, len(members)), 1, 1, True)
 
-  results.exportCSV("/tmp/member.csv")
   return HttpResponse("DONE")
 
 def ArffGenerateForMember(request, member_id):
@@ -272,7 +271,7 @@ def CompareAllParties(request):
   for i, party in enumerate(parties):
     p.WriteProgress("Party %d/%d" % (i+1, len(parties)), 0, 1)
 
-  results = TestResults()
+  results = TestResults("/tmp/party.csv")
   weka_runner = WekaRunner()
   for i, party in enumerate(parties):
     p.WriteProgress("Party %d/%d" % (i+1, len(parties)), 1, 1)
@@ -315,7 +314,6 @@ def CompareAllParties(request):
 
     p.WriteProgress("Party %d/%d" % (i+1, len(parties)), 1, 1, True)
 
-  results.exportCSV("/tmp/party.csv")
   return HttpResponse("DONE")
 
 def ArffGenerateForParty(request, party_id):
