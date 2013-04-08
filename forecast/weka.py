@@ -39,9 +39,17 @@ class WekaRunner:
             self.classifier_flags = classifier_flags
 
     CONFIGS = {
-        "J48-0.25": ClassifierConfig("J48-0.25", "trees.J48", "-C 0.25 -M 2"),
-        "J48-0.5" : ClassifierConfig("J48-0.5" , "trees.J48", "-C 0.5 -M 2"),
-        "J48-0.75": ClassifierConfig("J48-0.75", "trees.J48", "-C 0.75 -M 2"),
+        "ID3"         : ClassifierConfig("ID3"         , "trees.Id3"         , ""               ),
+        "J48-0.25"    : ClassifierConfig("J48-0.25"    , "trees.J48"         , "-C 0.25 -M 2"   ),
+        "J48-0.5"     : ClassifierConfig("J48-0.5"     , "trees.J48"         , "-C 0.5 -M 2"    ),
+        "J48-0.75"    : ClassifierConfig("J48-0.75"    , "trees.J48"         , "-C 0.75 -M 2"   ),
+        "RandomForest": ClassifierConfig("RandomForest", "trees.RandomForest", "-I 10 -K 0 -S 1"),
+        "NaiveBayes"  : ClassifierConfig("NaiveBayes"  , "bayes.NaiveBayes"  , ""               ),
+        "IBk-KNN"     : ClassifierConfig("IBk-KNN"     , "lazy.IBk"          ,
+                                         '-K 1 -W 0 -A "weka.core.neighboursearch.KDTree -A ' +
+                                         '\\"weka.core.EuclideanDistance -R first-last\\" -S ' +
+                                         'weka.core.neighboursearch.kdtrees.SlidingMidPointOfWidestSide ' +
+                                         '-W 0.01 -L 40 -N'),
     }
     ALL_SPLITS = [66, 70, 75, 80, 85, 90, 95]
 
