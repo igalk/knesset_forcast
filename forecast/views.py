@@ -1,5 +1,6 @@
 import cgi
 import config
+import itertools
 import os
 
 from django.core.urlresolvers import reverse
@@ -16,6 +17,19 @@ from forecast.progress import *
 from forecast.test_results import *
 from search.words.bag_of_words import Build
 from process import Process
+
+MEMBER_FEATURE_TO_IGNORE = [
+    (5, 9),     # Coalition features.
+    (10, 43),   # Agenda features.
+    (44, 537),  # Tag features.
+    538,        # BoW feature.
+  ]
+PARTY_FEATURE_TO_IGNORE = [
+    (3, 7),     # Coalition features.
+    (8, 41),    # Agenda features.
+    (42, 535),  # Tag features.
+    536,        # BoW feature.
+  ]
 
 def EscapeString(s):
   return cgi.escape(s).replace("\n", "<br/>").replace("\t", "&emsp;").replace(" ", "&nbsp;")
@@ -80,6 +94,9 @@ def MemberArffGenerate(member_id, filename, progress):
 
   open(filename, "w").write(content)
 
+  no_wildcards_content = content.replace("?", "0")
+  open(filename.replace(".arff", ".nowc.arff"), "w").write(no_wildcards_content)
+
 def FeatureDownloadForMember(request, member_id):
   arff_input = config.MemberPath(member_id)
   p = Progress()
@@ -120,19 +137,34 @@ def CompareAllMembers(request):
       p.WriteProgress("Run %s" % conf_id, 0, 1)
 
     arff_input = config.MemberPath(member.id)
+    arff_inputs = [arff_input.replace(".arff", ".nowc.arff"), arff_input]
     MemberArffGenerate(member.id, arff_input, p)
 
+    total_iterations = len(WekaRunner.ALL_SPLITS) * (2**len(MEMBER_FEATURE_TO_IGNORE)) * len(arff_inputs)
     for conf_id, conf in WekaRunner.CONFIGS.items():
-      for j, split_percent in enumerate(WekaRunner.ALL_SPLITS):
-        weka_output = weka_runner.run(conf, arff_input, split_percent)
-        if weka_output.error:
-          print "*"*40
-          print "Weka Error"
-          print weka_output.raw_output
-          print "*"*40
-        else:
-          results.addResult(member.id, conf, split_percent, [1]*4, 1, weka_output)
-        p.WriteProgress("Run %s" % conf_id, j+1, len(WekaRunner.ALL_SPLITS))
+      print "Checking conf_id = %s" % conf_id
+      j = 0
+      for split_percent in WekaRunner.ALL_SPLITS:
+        print "Checking split = %s" % split_percent
+        features_to_use_iters = tuple([[0, 1] for r in MEMBER_FEATURE_TO_IGNORE])
+        print "Checking features_to_use_iters = %s" % (features_to_use_iters,)
+        for features_to_use in itertools.product(*features_to_use_iters):
+          print "Checking features_to_use = %s" % (features_to_use,)
+          feature_sets_to_ignore = [feature_range for f, feature_range in enumerate(MEMBER_FEATURE_TO_IGNORE)
+                                    if not features_to_use[f]]
+          print "Checking feature_sets_to_ignore = %s" % feature_sets_to_ignore
+          for use_wildcards, arff_input in enumerate(arff_inputs):
+            print "Checking use_wildcards = %s" % use_wildcards
+            weka_output = weka_runner.run(conf, arff_input, split_percent, feature_sets_to_ignore)
+            if weka_output.error:
+              print "*"*40
+              print "Weka Error"
+              print weka_output.raw_output
+              print "*"*40
+            else:
+              results.addResult(member.id, conf, split_percent, features_to_use, use_wildcards, weka_output)
+            j += 1
+            p.WriteProgress("Run %s" % conf_id, j, total_iterations)
       p.WriteProgress("Run %s" % conf_id, 1, 1, True)
 
     p.WriteProgress("Member %d/%d" % (i+1, len(members)), 1, 1, True)
@@ -167,7 +199,6 @@ def PartyArffGenerate(party_id, filename, progress):
     progress.WriteProgress("Compile bag of words", 1, 1, True)
     progress.WriteProgress("Extract features", 1, 1, True)
     return
-
 
   feature_extractor = PartyBillsFeatureExtractor(progress)
   class_values = sorted(['FOR', 'AGAINST', 'ABSTAIN', 'NO_SHOW'])
@@ -209,6 +240,9 @@ def PartyArffGenerate(party_id, filename, progress):
 
   open(filename, "w").write(content)
 
+  no_wildcards_content = content.replace("?", "0")
+  open(filename.replace(".arff", ".nowc.arff"), "w").write(no_wildcards_content)
+
 def FeatureDownloadForParty(request, party_id):
   arff_input = config.PartyPath(party_id)
   p = Progress()
@@ -249,19 +283,34 @@ def CompareAllParties(request):
       p.WriteProgress("Run %s" % conf_id, 0, 1)
 
     arff_input = config.PartyPath(party.id)
+    arff_inputs = [arff_input.replace(".arff", ".nowc.arff"), arff_input]
     PartyArffGenerate(party.id, arff_input, p)
 
+    total_iterations = len(WekaRunner.ALL_SPLITS) * (2**len(PARTY_FEATURE_TO_IGNORE)) * len(arff_inputs)
     for conf_id, conf in WekaRunner.CONFIGS.items():
-      for j, split_percent in enumerate(WekaRunner.ALL_SPLITS):
-        weka_output = weka_runner.run(conf, arff_input, split_percent)
-        if weka_output.error:
-          print "*"*40
-          print "Weka Error"
-          print weka_output.raw_output
-          print "*"*40
-        else:
-          results.addResult(party.id, conf, split_percent, [1]*4, 1, weka_output)
-        p.WriteProgress("Run %s" % conf_id, j+1, len(WekaRunner.ALL_SPLITS))
+      print "Checking conf_id = %s" % conf_id
+      j = 0
+      for split_percent in WekaRunner.ALL_SPLITS:
+        print "Checking split = %s" % split_percent
+        features_to_use_iters = tuple([[0, 1] for r in PARTY_FEATURE_TO_IGNORE])
+        print "Checking features_to_use_iters = %s" % (features_to_use_iters,)
+        for features_to_use in itertools.product(*features_to_use_iters):
+          print "Checking features_to_use = %s" % (features_to_use,)
+          feature_sets_to_ignore = [feature_range for f, feature_range in enumerate(PARTY_FEATURE_TO_IGNORE)
+                                    if not features_to_use[f]]
+          print "Checking feature_sets_to_ignore = %s" % feature_sets_to_ignore
+          for use_wildcards, arff_input in enumerate(arff_inputs):
+            print "Checking use_wildcards = %s" % use_wildcards
+            weka_output = weka_runner.run(conf, arff_input, split_percent, feature_sets_to_ignore)
+            if weka_output.error:
+              print "*"*40
+              print "Weka Error"
+              print weka_output.raw_output
+              print "*"*40
+            else:
+              results.addResult(party.id, conf, split_percent, features_to_use, use_wildcards, weka_output)
+            j += 1
+            p.WriteProgress("Run %s" % conf_id, j, total_iterations)
       p.WriteProgress("Run %s" % conf_id, 1, 1, True)
 
     p.WriteProgress("Party %d/%d" % (i+1, len(parties)), 1, 1, True)
