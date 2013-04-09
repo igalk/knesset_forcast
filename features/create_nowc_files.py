@@ -7,6 +7,9 @@ NOWC_FILE = ".nowc.arff"
 
 files = glob(PARTIES_PATTERN) + glob(MEMBERS_PATTERN)
 for f in files:
+  if NOWC_FILE in f:
+    continue
+
   f_nowc = f.replace(".arff", NOWC_FILE)
   if os.path.isfile(f_nowc):
     continue
