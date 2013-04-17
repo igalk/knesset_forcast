@@ -18,3 +18,9 @@ python ./manage.py runserver
 
 in your browser, go to localhost:8000
 and follow the instructions until a data file is downloaded, then open it with Weka.
+
+If you also want to use the statistical analysis, please use easy install and run:
+```
+sudo easy_install BeautifulSoup
+sudo easy_install numpy
+```
