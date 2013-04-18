@@ -17,6 +17,15 @@ from forecast.progress import *
 from forecast.test_results import *
 from search.words.bag_of_words import Build
 from process import Process
+from django.views.decorators.csrf import csrf_exempt
+
+import logging
+logger = logging.getLogger('django')   # Django's catch-all logger
+hdlr = logging.StreamHandler()   # Logs to stderr by default
+formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+hdlr.setFormatter(formatter)
+logger.addHandler(hdlr)
+logger.setLevel(logging.WARNING)
 
 MEMBER_FEATURE_TO_IGNORE = [
     (5, 9),     # Coalition features.
@@ -46,6 +55,24 @@ def ReportProgress(request):
     "done":     (len(v) > 3 and "true" or "false")
   }) for v in p.GetProgresses()])
   return HttpResponse("[" + progresses + "]")
+
+def ConfigsList(request):
+  algorithms = "{\"id\": \"algorithm\", \"category\": \"Algorithm\", \"type\": \"multi\", \"options\": [" + ",".join([("{\"name\": \"%(name)s\"}" % {
+    "name": config
+  }) for config in WekaRunner.CONFIGS]) + "]}"
+
+  splits = "{\"id\": \"split\", \"category\": \"Split\", \"type\": \"multi\", \"options\": [" + ",".join([("{\"name\": \"%(name)s\"}" % {
+    "name": split
+  }) for split in WekaRunner.ALL_SPLITS]) + "]}"
+
+  use_coalition = "{\"id\": \"use_coalition\", \"category\": \"Use coalition structure\", \"type\": \"bool\"}"
+  use_agendas = "{\"id\": \"use_agendas\", \"category\": \"Use agendas\", \"type\": \"bool\"}"
+  use_tags = "{\"id\": \"use_tags\", \"category\": \"Use tags\", \"type\": \"bool\"}"
+  use_bag_of_words = "{\"id\": \"use_bag_of_words\", \"category\": \"Use bag of words\", \"type\": \"bool\"}"
+  use_wildcards = "{\"id\": \"use_wildcards\", \"category\": \"Use wild cards\", \"type\": \"bool\"}"
+
+  configs = "[%s, %s, %s, %s, %s, %s, %s]" % (algorithms, splits, use_coalition, use_agendas, use_tags, use_bag_of_words, use_wildcards)
+  return HttpResponse(configs)
 
 def MemberArffGenerate(member_id, filename, progress):
   member = get_object_or_404(Member, pk=member_id)
@@ -97,19 +124,35 @@ def MemberArffGenerate(member_id, filename, progress):
   no_wildcards_content = content.replace("?", "0")
   open(filename.replace(".arff", ".nowc.arff"), "w").write(no_wildcards_content)
 
+@csrf_exempt
 def FeatureDownloadForMember(request, member_id):
+  algorithm = request.POST["optionsalgorithm"]
+  split = request.POST["optionssplit"]
+  features_to_use = tuple((
+    request.POST["optionsuse_coalition"] == 'true',
+    request.POST["optionsuse_agendas"] == 'true',
+    request.POST["optionsuse_tags"] == 'true',
+    request.POST["optionsuse_bag_of_words"] == 'true',
+  ))
+  features_to_ignore = [feature_range for f, feature_range in enumerate(MEMBER_FEATURE_TO_IGNORE)
+                                      if not features_to_use[f]]
+  use_wildcards = (request.POST["optionsuse_wildcards"] == 'true')
+
   arff_input = config.MemberPath(member_id)
+  if not use_wildcards:
+    arff_input = arff_input.replace(".arff", ".nowc.arff")
+
   p = Progress()
   p.Reset()
   p.WriteProgress("Compile bag of words", 0, 1)
   p.WriteProgress("Extract features", 0, 1)
-  p.WriteProgress("Run J48", 0, 1)
+  p.WriteProgress("Run %s" % algorithm, 0, 1)
   MemberArffGenerate(member_id, arff_input, p)
 
-  p.WriteProgress("Run J48", 1, 1)
+  p.WriteProgress("Run %s" % algorithm, 1, 1)
   weka_runner = WekaRunner()
-  weka_output = weka_runner.run(WekaRunner.CONFIGS["J48-0.25"], arff_input).raw_output
-  p.WriteProgress("Run J48", 1, 1, True)
+  weka_output = weka_runner.run(WekaRunner.CONFIGS[algorithm], arff_input, split, features_to_ignore).raw_output
+  p.WriteProgress("Run %s" % algorithm, 1, 1, True)
 
   weka_output = EscapeString(weka_output)
   return HttpResponse(weka_output)
@@ -242,19 +285,34 @@ def PartyArffGenerate(party_id, filename, progress):
   no_wildcards_content = content.replace("?", "0")
   open(filename.replace(".arff", ".nowc.arff"), "w").write(no_wildcards_content)
 
+@csrf_exempt
 def FeatureDownloadForParty(request, party_id):
+  algorithm = request.POST["optionsalgorithm"]
+  split = request.POST["optionssplit"]
+  features_to_use = tuple((
+    request.POST["optionsuse_coalition"] == 'true',
+    request.POST["optionsuse_agendas"] == 'true',
+    request.POST["optionsuse_tags"] == 'true',
+    request.POST["optionsuse_bag_of_words"] == 'true',
+  ))
+  features_to_ignore = [feature_range for f, feature_range in enumerate(PARTY_FEATURE_TO_IGNORE)
+                                      if not features_to_use[f]]
+  use_wildcards = (request.POST["optionsuse_wildcards"] == 'true')
+
   arff_input = config.PartyPath(party_id)
+  if not use_wildcards:
+    arff_input = arff_input.replace(".arff", ".nowc.arff")
   p = Progress()
   p.Reset()
   p.WriteProgress("Compile bag of words", 0, 1)
   p.WriteProgress("Extract features", 0, 1)
-  p.WriteProgress("Run J48", 0, 1)
+  p.WriteProgress("Run %s" % algorithm, 0, 1)
   PartyArffGenerate(party_id, arff_input, p)
 
-  p.WriteProgress("Run J48", 1, 1)
+  p.WriteProgress("Run %s" % algorithm, 1, 1)
   weka_runner = WekaRunner()
-  weka_output = weka_runner.run(WekaRunner.CONFIGS["J48-0.25"], arff_input).raw_output
-  p.WriteProgress("Run J48", 1, 1, True)
+  weka_output = weka_runner.run(WekaRunner.CONFIGS[algorithm], arff_input, split, features_to_ignore).raw_output
+  p.WriteProgress("Run %s" % algorithm, 1, 1, True)
 
   weka_output = EscapeString(weka_output)
   return HttpResponse(weka_output)

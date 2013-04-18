@@ -15,6 +15,28 @@ function makeProgress(progress) {
   return p;
 }
 
+function makeOptions(options) {
+  var p = "";
+  p += "<div class=\"control-group\">";
+  p +=   "<label class=\"control-label\" for=\"options" + options.id + "\">" + options.category + "</label>";
+  p +=   "<div class=\"controls\">";
+  
+  if (options.type == "bool") {
+    p += "<label class=\"checkbox\">";
+    p +=   "<input type=\"checkbox\" id=\"options" + options.id + "\" value=\"option\">";
+    p += "</label>";
+  } else {
+    p += "<select id=\"options" + options.id + "\">";
+    $.each(options.options, function(i) {
+      p += "<option>" + options.options[i].name + "</option>";
+    });
+    p += "</select>";
+  }
+  p +=   "</div>";
+  p += "</div>";
+  return p;
+}
+
 function showProgress(f) {
   $.get("/forecast/progress", function(data) {
     var progresses = JSON.parse(data);
@@ -35,12 +57,43 @@ function showModal(name, id, entity) {
   $("#downloadLink")[0].setAttribute("class", "btn");
   $("#downloadLink").html("Download arff");
   $("#showLive")[0].setAttribute("href", "javascript:showLive(" + id + ", \"" + entity + "\")");
-  $("#modalBody").html("");
-  $("#pageModal").modal();
+  $("#showLive").html("Show live")
+
+  // Show the config options
+  $.get("/forecast/configs", function(data) {
+    var options = JSON.parse(data);
+    var all = "";
+    all += "<div class=\"row\">";
+    all +=   "<div class=\"span6\">";
+    all +=     "<form id=\"config_form\" class=\"form-horizontal well\">";
+    all +=       "<fieldset>";
+    all +=         "<legend>Configuration for weka</legend>";
+    $.each(options, function(i) {
+      all += makeOptions(options[i]);
+    });
+    all +=       "</fieldset>";
+    all +=     "</form>";
+    all +=   "</div>";
+    all += "</div>";
+    $("#modalBody").html(all);
+    $("#pageModal").modal();
+  });
 }
 
 function showLive(id, entity) {
-  $.get("/forecast/" + entity + "/" + id, function(data) {
+  var payload = {};
+
+  var selectInputs = document.getElementsByTagName('select');
+  $.each(selectInputs, function(i) {
+    payload[selectInputs[i].id] = selectInputs[i].options[selectInputs[i].selectedIndex].value;
+  });
+
+  var checkboxInputs = document.getElementsByTagName('input');
+  $.each(checkboxInputs, function(i) {
+    payload[checkboxInputs[i].id] = checkboxInputs[i].checked;
+  });
+
+  $.post("/forecast/" + entity + "/" + id + "/", payload).done(function(data) {
     window.clearInterval(interval);
     interval = null;
     $("#modalBody").html("<font face=\"courier new\">" + data + "</font>");
@@ -55,6 +108,7 @@ function showModalAll(entity) {
   $("#downloadLink")[0].removeAttribute("class");
   $("#downloadLink").html("");
   $("#showLive")[0].setAttribute("href", "javascript:showLiveAll(\"" + entity + "\")");
+  $("#showLive").html("Run all experiments")
   $("#modalBody").html("");
   $("#pageModal").modal();
 }
