@@ -38,4 +38,6 @@ urlpatterns = patterns('',
         'forecast.views.ArffGenerateForParty'),
     url(r'^party/(?P<party_id>\d+)/arff/download$',
         'forecast.views.ArffDownloadForParty'),
+    url(r'^generic/$',
+        'forecast.views.ArffGenerateGeneric'),
 )

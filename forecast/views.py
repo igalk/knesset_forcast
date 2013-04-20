@@ -12,6 +12,7 @@ from forecast.feature import *
 from forecast.models import *
 from forecast.member_bills_feature_extractor import *
 from forecast.party_bills_feature_extractor import *
+from forecast.generic_bills_feature_extractor import *
 from forecast.weka import WekaRunner
 from forecast.progress import *
 from forecast.test_results import *
@@ -392,4 +393,52 @@ def DownloadAllPartiesComparison(request):
   content = open("/tmp/party.csv", "r").read()
   response = HttpResponse(content, mimetype='application/octet-stream')
   response['Content-Disposition'] = "attachment; filename=party_votes.csv"
+  return response
+
+def ArffGenerateGeneric(request):
+  p = Progress()
+  p.Reset()
+  p.WriteProgress("Extract features", 0, 1)
+
+  feature_extractor = GenericBillsFeatureExtractor(p)
+  class_values = sorted(['FOR', 'AGAINST', 'ABSTAIN'])
+
+  bills = [bill for bill in Bill.objects.all() if bill.vote_set.all()]
+
+  # Build features
+  with Process('Building generic features'):
+    features = GenericBillsFeatures()
+
+    extracted = feature_extractor.Extract(bills, features)
+    feature_values = [sorted(feature.LegalValues()) for feature in features]
+
+  # Output features to arff
+  content = ''
+  with Process('Outputing generic arff'):
+    content += '@RELATION decision\n\n'
+    for feature in features:
+      if isinstance(feature, FeatureSet):
+        classes = feature.class_name()
+        values = feature.LegalValues()
+        for i, class_name in enumerate(classes):
+          content += '@ATTRIBUTE %s {%s}\n' % (class_name,
+                                               ','.join([str(v) for v in values[i]]))
+      else:
+        content += '@ATTRIBUTE %s {%s}\n' % (feature.class_name(),
+                                             ','.join([str(v) for v in feature.LegalValues()]))
+    content += '@ATTRIBUTE class {%s}\n\n' % ','.join(class_values)
+
+    content += '@DATA\n'
+    values = extracted.values()
+    values.sort(key=lambda v: v[2])
+    for value in values:
+      content += ','.join([','.join([str(v) for v in value[0]]), value[1]]) + '\n'
+
+  open('features/generic.arff', "w").write(content)
+
+  no_wildcards_content = content.replace("?", "0")
+  open('features/generic.nowc.arff', "w").write(no_wildcards_content)
+  
+  response = HttpResponse(content, mimetype='application/octet-stream')
+  response['Content-Disposition'] = "attachment; filename=all_votes.arff"
   return response
