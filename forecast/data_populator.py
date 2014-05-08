@@ -105,7 +105,7 @@ class DataPopulator:
     print 'Fetching all agendas...'
     try:
       data = self._GetJSONData(AgendaURL())
-      
+
       if data['meta']['next']:
         raise Exception('Next is not expected in agendas: %s' % data['meta']['next'])
 
@@ -131,7 +131,13 @@ class DataPopulator:
       while True:
         for i, data_item in enumerate(data['objects']):
           print 'Progress: (%d/%d)' % (50*page+i+1, total)
-          bill = self._PopulateBill(data_item)
+          bill = None
+          while bill is None:
+            try:
+              bill = self._PopulateBill(data_item)
+            except Exception, e:
+              print e
+              print 'retrying...'
           print '='*40
 
         # if data['meta']['next']:
@@ -334,57 +340,61 @@ class DataPopulator:
 
     data = self._GetJSONData(VoteURL(vote_id))
     print 'Parsing data on vote %s' % vote_id
-    vote = Vote.objects.create(
-        id=vote_id,
-        title=data['title'],
-        full_text=data['full_text'],
-        summary=data['summary'],
-        bill=bill,
-        type=vote_type,
-        time=data['time'].replace('T', ' ')
-    )
-    vote.save()
-    self.votes[vote.id] = vote
-    #print unicode(vote)
-
-    # TODO(lagi): move for votes to API V2
-    data = self._GetJSONData(VoteURL(vote_id, old=True))
-    for member_id in data['for_votes']:
-      member = self._PopulateMemberById(member_id)
-      if not member:
-        continue
-      vote_member_decision = VoteMemberDecision.objects.create(
-          member=member,
-          vote=vote,
-          decision='FOR',
+    try:
+      vote = Vote.objects.create(
+          id=vote_id,
+          title=data['title'],
+          full_text=data['full_text'],
+          summary=data['summary'],
+          bill=bill,
+          type=vote_type,
+          time=data['time'].replace('T', ' ')
       )
-      vote_member_decision.save()
+      vote.save()
+      self.votes[vote.id] = vote
+      #print unicode(vote)
 
-    # TODO(lagi): move against votes to API V2
-    for member_id in data['against_votes']:
-      member = self._PopulateMemberById(member_id)
-      if not member:
-        continue
-      vote_member_decision = VoteMemberDecision.objects.create(
-          member=member,
-          vote=vote,
-          decision='AGAINST',
-      )
-      vote_member_decision.save()
+      # TODO(lagi): move for votes to API V2
+      data = self._GetJSONData(VoteURL(vote_id, old=True))
+      for member_id in data['for_votes']:
+        member = self._PopulateMemberById(member_id)
+        if not member:
+          continue
+        vote_member_decision = VoteMemberDecision.objects.create(
+            member=member,
+            vote=vote,
+            decision='FOR',
+        )
+        vote_member_decision.save()
 
-    # TODO(lagi): move abstain votes to API V2
-    for member_id in data['abstain_votes']:
-      member = self._PopulateMemberById(member_id)
-      if not member:
-        continue
-      vote_member_decision = VoteMemberDecision.objects.create(
-          member=member,
-          vote=vote,
-          decision='ABSTAIN',
-      )
-      vote_member_decision.save()
+      # TODO(lagi): move against votes to API V2
+      for member_id in data['against_votes']:
+        member = self._PopulateMemberById(member_id)
+        if not member:
+          continue
+        vote_member_decision = VoteMemberDecision.objects.create(
+            member=member,
+            vote=vote,
+            decision='AGAINST',
+        )
+        vote_member_decision.save()
 
-    return vote
+      # TODO(lagi): move abstain votes to API V2
+      for member_id in data['abstain_votes']:
+        member = self._PopulateMemberById(member_id)
+        if not member:
+          continue
+        vote_member_decision = VoteMemberDecision.objects.create(
+            member=member,
+            vote=vote,
+            decision='ABSTAIN',
+        )
+        vote_member_decision.save()
+
+      return vote
+    except Exception, e:
+      print "Error at vote %d, skipping..." % (vote_id)
+      print e
 
   def _PopulateAgendaById(self, agenda_id):
     agenda_id = int(agenda_id)
